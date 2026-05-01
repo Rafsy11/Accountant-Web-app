@@ -1,0 +1,1597 @@
+<!DOCTYPE html>
+<html lang="en" class="theme-pro-dark">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <meta name="theme-color" content="#0f172a">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <link rel="manifest" href="manifest.json">
+  <title>Personal Daily Cash & Expense Tracking</title>
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          colors: {
+            app: {
+              bg: 'var(--bg-main)',
+              card: 'var(--bg-card)',
+              text: 'var(--text-main)',
+              muted: 'var(--text-muted)',
+              border: 'var(--border)',
+              primary: 'var(--primary)',
+              primaryHover: 'var(--primary-hover)',
+              expenseHover: 'var(--expense-hover)',
+              btn: 'var(--btn-text)',
+            }
+          },
+          boxShadow: {
+            'app': 'var(--card-shadow)',
+          }
+        }
+      }
+    }
+  </script>
+  <style type="text/tailwindcss">
+    @layer base {
+      :root {
+        /* Classic Light */
+        --bg-main: #f8fafc;
+        --bg-card: #ffffff;
+        --text-main: #0f172a;
+        --text-muted: #64748b;
+        --border: #e2e8f0;
+        --primary: #0ea5e9; /* Sky Blue */
+        --primary-hover: #0284c7;
+        --expense: #e11d48; /* Soft Rose */
+        --expense-hover: #be123c;
+        --chart-expense: #e11d48;
+        --card-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.05), 0 2px 4px -2px rgb(0 0 0 / 0.05);
+        --btn-text: #0f172a;
+        color-scheme: light;
+      }
+      
+      .theme-pro-dark {
+        --bg-main: #09090b;
+        --bg-card: #18181b;
+        --text-main: #f8fafc;
+        --text-muted: #e2e8f0;
+        --border: #52525b;
+        --primary: #14b8a6; /* Teal */
+        --primary-hover: #0d9488;
+        --expense: #e11d48; /* Soft Rose */
+        --expense-hover: #be123c;
+        --chart-expense: #e11d48;
+        --card-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.5), 0 4px 6px -4px rgb(0 0 0 / 0.5);
+        --btn-text: #ffffff;
+        color-scheme: dark;
+      }
+
+      .theme-midnight {
+        --bg-main: #0f172a;
+        --bg-card: #1e293b;
+        --text-main: #f1f5f9;
+        --text-muted: #94a3b8;
+        --border: #334155;
+        --primary: #38bdf8;
+        --primary-hover: #0ea5e9;
+        --expense: #e11d48;
+        --expense-hover: #be123c;
+        --chart-expense: #e11d48;
+        --card-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.5), 0 4px 6px -4px rgb(0 0 0 / 0.5);
+        --btn-text: #ffffff;
+        color-scheme: dark;
+      }
+
+      .theme-crimson {
+        --bg-main: #450a0a;
+        --bg-card: #7f1d1d;
+        --text-main: #fef2f2;
+        --text-muted: #fca5a5;
+        --border: #991b1b;
+        --primary: #fb7185;
+        --primary-hover: #e11d48;
+        --expense: #ea580c;
+        --expense-hover: #c2410c;
+        --chart-expense: #ea580c;
+        --card-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.5), 0 4px 6px -4px rgb(0 0 0 / 0.5);
+        --btn-text: #ffffff;
+        color-scheme: dark;
+      }
+    }
+    
+    body { font-family: 'Inter', sans-serif; }
+    
+    ::-webkit-scrollbar { width: 8px; height: 8px; }
+    ::-webkit-scrollbar-track { background: transparent; }
+    ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+    ::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
+
+    .custom-scrollbar::-webkit-scrollbar { width: 6px; }
+    .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
+    .custom-scrollbar::-webkit-scrollbar-thumb { background: var(--border); border-radius: 10px; }
+    .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: var(--text-muted); }
+
+    @keyframes slideUp {
+      from { opacity: 0; transform: translateY(16px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+  </style>
+
+  <script src="https://unpkg.com/react@18/umd/react.production.min.js" crossorigin></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js" crossorigin></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/luxon@3.4.4/build/global/luxon.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-adapter-luxon@1.3.1/dist/chartjs-adapter-luxon.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chartjs-chart-financial@0.2.0/dist/chartjs-chart-financial.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.25/jspdf.plugin.autotable.min.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+
+<body>
+  <div id="root"></div>
+
+  <script type="text/babel">
+    const { useState, useMemo, useEffect, useRef, useCallback } = React;
+
+    const SEED_TRANSACTIONS = [];
+
+    const DEFAULT_EXPENSE_CATEGORIES = [
+      { name: 'Food', color: '#f59e0b' },
+      { name: 'Transport', color: '#3b82f6' },
+      { name: 'Stock Restock', color: '#8b5cf6' },
+      { name: 'Bills', color: '#ef4444' },
+      { name: 'Others', color: '#64748b' },
+    ];
+    const DEFAULT_INCOME_CATEGORIES = [
+      { name: 'Salary', color: '#10b981' },
+      { name: 'Warung Profit', color: '#0ea5e9' },
+      { name: 'Others', color: '#64748b' },
+    ];
+
+    const PRESET_COLORS = ['#f43f5e', '#ec4899', '#d946ef', '#8b5cf6', '#6366f1', '#3b82f6', '#0ea5e9', '#06b6d4', '#14b8a6', '#10b981', '#22c55e', '#84cc16', '#eab308', '#f59e0b', '#f97316', '#ef4444', '#64748b'];
+    const randomHex = () => PRESET_COLORS[Math.floor(Math.random() * PRESET_COLORS.length)];
+
+    /* Helper: get today's date as a local YYYY-MM-DD string (avoids UTC offset bugs) */
+    const toLocalDateStr = (d = new Date()) => {
+      const y = d.getFullYear();
+      const m = String(d.getMonth() + 1).padStart(2, '0');
+      const day = String(d.getDate()).padStart(2, '0');
+      return `${y}-${m}-${day}`;
+    };
+
+    const loadFromStorage = (key, fallback) => {
+      try {
+        const v = localStorage.getItem(key);
+        return v ? JSON.parse(v) : fallback;
+      } catch { return fallback; }
+    };
+
+    /* ─── Category Manager Modal ────────────────────────────────────────── */
+    const CategoryManagerModal = ({ initialType, expenseCategories, incomeCategories, onAddCategory, onDeleteCategory, onClose }) => {
+      const [activeTab, setActiveTab] = useState(initialType);
+      const [newName, setNewName] = useState('');
+      const [error, setError] = useState('');
+
+      const categories = activeTab === 'Expense' ? expenseCategories : incomeCategories;
+
+      const handleAdd = () => {
+        const trimmed = newName.trim();
+        if (!trimmed) { setError('Category name cannot be empty.'); return; }
+        if (categories.some(c => c.name.toLowerCase() === trimmed.toLowerCase())) {
+          setError('This category already exists.'); return;
+        }
+        onAddCategory({ name: trimmed, color: randomHex() }, activeTab);
+        setNewName('');
+        setError('');
+      };
+
+      const handleKey = (e) => { if (e.key === 'Enter') { e.preventDefault(); handleAdd(); } };
+
+      return (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{background:'rgba(0,0,0,0.6)'}} onClick={onClose}>
+          <div className="bg-app-card border border-app-border rounded-2xl shadow-app w-full max-w-sm p-6 flex flex-col gap-y-5" onClick={e => e.stopPropagation()}>
+            {/* Header */}
+            <div className="flex items-center justify-between">
+              <h3 className="text-base font-bold text-app-text">Manage Categories</h3>
+              <button onClick={onClose} className="p-1.5 rounded-lg hover:bg-app-bg text-app-muted hover:text-app-text transition-colors">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+              </button>
+            </div>
+
+            {/* Tabs */}
+            <div className="flex rounded-xl p-1 bg-app-bg border border-app-border shrink-0">
+              <button type="button" onClick={() => { setActiveTab('Expense'); setError(''); setNewName(''); }}
+                className={`flex-1 py-1.5 text-sm font-semibold rounded-lg transition-colors ${activeTab === 'Expense' ? 'bg-app-card text-app-expense shadow-sm' : 'text-app-muted hover:text-app-text'}`}>
+                Expense
+              </button>
+              <button type="button" onClick={() => { setActiveTab('Income'); setError(''); setNewName(''); }}
+                className={`flex-1 py-1.5 text-sm font-semibold rounded-lg transition-colors ${activeTab === 'Income' ? 'bg-app-card text-app-primary shadow-sm' : 'text-app-muted hover:text-app-text'}`}>
+                Income
+              </button>
+            </div>
+
+            {/* Add new */}
+            <div className="flex gap-2">
+              <input
+                value={newName} onChange={e => { setNewName(e.target.value); setError(''); }} onKeyDown={handleKey}
+                placeholder="New category name…"
+                className="flex-1 px-3 py-2 text-sm rounded-xl border border-app-border bg-app-bg text-app-text focus:ring-2 focus:ring-app-primary focus:border-app-primary outline-none transition-all"
+              />
+              <button onClick={handleAdd}
+                className="px-4 py-2 rounded-xl text-sm font-semibold text-white bg-app-primary hover:bg-app-primaryHover transition-colors shrink-0">
+                Add
+              </button>
+            </div>
+            {error && <p className="-mt-3 text-xs text-app-expense">{error}</p>}
+
+            {/* List */}
+            <ul className="flex flex-col gap-y-2 max-h-56 overflow-y-auto pr-1">
+              {categories.map(cat => (
+                <li key={cat.name} className="flex items-center gap-3 px-3 py-2.5 rounded-xl bg-app-bg border border-app-border">
+                  <span className="w-3 h-3 rounded-full shrink-0" style={{background: cat.color}}></span>
+                  <span className="flex-1 text-sm font-medium text-app-text truncate">{cat.name}</span>
+                  <button onClick={() => onDeleteCategory(cat.name, activeTab)}
+                    className="p-1 rounded-md hover:bg-app-expense/10 hover:text-app-expense text-app-muted transition-colors shrink-0" title="Delete">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
+                  </button>
+                </li>
+              ))}
+              {categories.length === 0 && (
+                <li className="text-center text-sm text-app-muted py-4">No categories yet.</li>
+              )}
+            </ul>
+          </div>
+        </div>
+      );
+    };
+
+    /* ─── Toast / Snackbar System ──────────────────────────────────────── */
+    const ToastContainer = ({ toasts, onDismiss }) => {
+      return (
+        <div className="fixed bottom-6 right-6 z-[100] flex flex-col gap-2 pointer-events-none">
+          {toasts.map(t => (
+            <div key={t.id}
+              className={`pointer-events-auto flex items-center gap-3 px-4 py-3 rounded-xl shadow-lg border border-app-border bg-app-card text-app-text text-sm font-medium animate-[slideUp_0.3s_ease-out]`}
+              style={{animation: 'slideUp 0.3s ease-out'}}>
+              {t.type === 'success' && <span className="text-app-primary shrink-0"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg></span>}
+              {t.type === 'error' && <span className="text-app-expense shrink-0"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="15" x2="9" y1="9" y2="15"/><line x1="9" x2="15" y1="9" y2="15"/></svg></span>}
+              {t.type === 'info' && <span className="text-app-primary shrink-0"><svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" x2="12" y1="16" y2="12"/><line x1="12" x2="12.01" y1="8" y2="8"/></svg></span>}
+              <span className="flex-1">{t.message}</span>
+              <button onClick={() => onDismiss(t.id)} className="text-app-muted hover:text-app-text transition-colors shrink-0 p-0.5">
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+              </button>
+            </div>
+          ))}
+        </div>
+      );
+    };
+
+    /* ─── Custom Confirm Modal ─────────────────────────────────────────── */
+    const ConfirmModal = ({ title, message, confirmLabel, confirmColor, onConfirm, onCancel }) => {
+      return (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{background:'rgba(0,0,0,0.6)'}} onClick={onCancel}>
+          <div className="bg-app-card border border-app-border rounded-2xl shadow-app w-full max-w-sm p-6 flex flex-col gap-y-4" onClick={e => e.stopPropagation()}>
+            <div className="flex items-start gap-3">
+              <div className="p-2 rounded-full bg-app-expense/10 text-app-expense shrink-0 mt-0.5">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" x2="12" y1="9" y2="13"/><line x1="12" x2="12.01" y1="17" y2="17"/></svg>
+              </div>
+              <div>
+                <h3 className="text-base font-bold text-app-text">{title || 'Confirm'}</h3>
+                <p className="text-sm text-app-muted mt-1">{message}</p>
+              </div>
+            </div>
+            <div className="flex gap-3 justify-end pt-2">
+              <button onClick={onCancel}
+                className="px-4 py-2 rounded-xl text-sm font-semibold text-app-muted border border-app-border hover:bg-app-bg transition-colors">
+                Cancel
+              </button>
+              <button onClick={onConfirm}
+                className={`px-4 py-2 rounded-xl text-sm font-semibold text-white transition-colors shadow-sm ${confirmColor || 'bg-app-expense hover:bg-app-expenseHover'}`}>
+                {confirmLabel || 'Delete'}
+              </button>
+            </div>
+          </div>
+        </div>
+      );
+    };
+
+    const formatCurrency = (amount, currencyCode = 'IDR', rates = null) => {
+      const locales = { 'IDR': 'id-ID', 'USD': 'en-US', 'EUR': 'de-DE' };
+      const options = { style: 'currency', currency: currencyCode, minimumFractionDigits: currencyCode === 'IDR' ? 0 : 2, maximumFractionDigits: currencyCode === 'IDR' ? 0 : 2 };
+      let convertedAmount = amount;
+      if (rates && rates[currencyCode]) {
+        convertedAmount = amount * rates[currencyCode];
+      }
+      return new Intl.NumberFormat(locales[currencyCode] || 'en-US', options).format(convertedAmount);
+    };
+
+    const FinancialChart = ({ data, themeName, chartType, categoryFilter, transactions = [], currency, exchangeRates }) => {
+      const canvasRef = useRef(null);
+      const chartRef = useRef(null);
+
+      useEffect(() => {
+        // 1. Mandatory Cleanup
+        if (chartRef.current) {
+          chartRef.current.destroy();
+          chartRef.current = null;
+        }
+
+        // 2. Data Validation
+        if (!transactions || transactions.length === 0) return;
+
+        // 3. Render with Delay for DOM stability
+        const timer = setTimeout(() => {
+          if (!canvasRef.current) return;
+          const ctx = canvasRef.current.getContext('2d');
+          
+          const isDark = themeName !== 'Classic Light';
+          const style = getComputedStyle(document.documentElement);
+          const primaryColor = style.getPropertyValue('--primary').trim() || '#10b981';
+          const expenseColor = style.getPropertyValue('--chart-expense').trim() || '#e11d48';
+          const textColor = isDark ? '#f8fafc' : '#0f172a';
+          const gridColor = style.getPropertyValue('--border').trim() || (isDark ? '#3f3f46' : '#e2e8f0');
+
+          try {
+            if (chartType === 'Candlestick') {
+              // Candlestick MUST use time-scale
+              chartRef.current = new Chart(ctx, {
+                type: 'candlestick',
+                data: {
+                  datasets: [{
+                    label: 'Balance',
+                    data: data.map(d => ({ x: luxon.DateTime.fromISO(d.isoDate).valueOf(), o: d.o, h: d.h, l: d.l, c: d.c })),
+                    color: { up: '#10b981', down: '#e11d48', unchanged: '#94a3b8' },
+                    borderColor: { up: '#10b981', down: '#e11d48', unchanged: '#94a3b8' }
+                  }]
+                },
+                options: {
+                  responsive: true,
+                  maintainAspectRatio: false,
+                  scales: {
+                    x: { type: 'time', time: { unit: 'day' }, ticks: { color: textColor }, grid: { display: false } },
+                    y: { ticks: { color: textColor, callback: v => formatCurrency(v, currency, exchangeRates) }, grid: { color: gridColor } }
+                  },
+                  plugins: { legend: { display: false } }
+                }
+              });
+            } else if (chartType === 'Line') {
+              // ULTRA-STABLE: Standard Line Chart
+              const sortedData = [...transactions].sort((a, b) => new Date(a.date) - new Date(b.date));
+              let runningTotal = 0;
+              const lineData = sortedData.map(tx => {
+                runningTotal += (tx.type === 'Income' ? tx.amount : -tx.amount);
+                return { date: tx.date, balance: runningTotal };
+              });
+
+              chartRef.current = new Chart(ctx, {
+                type: 'line',
+                data: {
+                  labels: lineData.map(d => d.date),
+                  datasets: [{
+                    label: 'Cumulative Balance',
+                    data: lineData.map(d => d.balance),
+                    borderColor: primaryColor,
+                    backgroundColor: isDark ? 'rgba(16, 185, 129, 0.25)' : 'rgba(16, 185, 129, 0.1)',
+                    borderWidth: 3,
+                    pointRadius: 4,
+                    fill: true,
+                    tension: 0
+                  }]
+                },
+                options: {
+                  responsive: true,
+                  maintainAspectRatio: false,
+                  scales: {
+                    x: { ticks: { color: textColor }, grid: { display: false } },
+                    y: { beginAtZero: false, ticks: { color: textColor, callback: v => formatCurrency(v, currency, exchangeRates) }, grid: { color: gridColor } }
+                  },
+                  plugins: { legend: { display: false } }
+                }
+              });
+            } else {
+              // ULTRA-STABLE: Standard Bar Chart
+              const isComparison = categoryFilter === 'Comparison';
+              const datasets = [];
+              if (categoryFilter === 'Expense' || isComparison) {
+                datasets.push({ label: 'Expense', data: data.map(d => d.expense), backgroundColor: expenseColor, borderRadius: 4 });
+              }
+              if (categoryFilter === 'Income' || isComparison) {
+                datasets.push({ label: 'Income', data: data.map(d => d.income), backgroundColor: primaryColor, borderRadius: 4 });
+              }
+
+              chartRef.current = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                  labels: data.map(d => d.date),
+                  datasets: datasets
+                },
+                options: {
+                  responsive: true,
+                  maintainAspectRatio: false,
+                  scales: {
+                    x: { ticks: { color: textColor }, grid: { display: false } },
+                    y: { beginAtZero: true, ticks: { color: textColor, callback: v => formatCurrency(v, currency, exchangeRates) }, grid: { color: gridColor } }
+                  },
+                  plugins: { legend: { display: isComparison, labels: { color: textColor } } }
+                }
+              });
+            }
+          } catch (err) {
+            console.error("ULTRA-STABLE Chart Error:", err);
+          }
+        }, 150);
+
+        return () => {
+          if (chartRef.current) chartRef.current.destroy();
+          clearTimeout(timer);
+        };
+      }, [data, chartType, categoryFilter, themeName, transactions]);
+
+      if (!transactions || transactions.length === 0) return <div className="flex items-center justify-center h-full text-app-muted text-sm font-medium">Add transactions to see chart</div>;
+      return <canvas ref={canvasRef} key={chartType + categoryFilter} />;
+    };
+
+    /* ─── Expense Pie / Doughnut Chart ──────────────────────────────────── */
+    const ExpensePieChart = ({ data, colors, themeName, currency, exchangeRates }) => {
+      const canvasRef = useRef(null);
+      const chartRef = useRef(null);
+
+      useEffect(() => {
+        if (chartRef.current) chartRef.current.destroy();
+
+        setTimeout(() => {
+          if (!canvasRef.current) return;
+          const isDark = themeName !== 'Classic Light';
+          const style = getComputedStyle(document.documentElement);
+          const textColor = isDark ? '#f8fafc' : '#0f172a';
+          const cardBg = style.getPropertyValue('--bg-card').trim() || (isDark ? '#1e293b' : '#ffffff');
+
+          const ctx = canvasRef.current.getContext('2d');
+          chartRef.current = new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+              labels: data.map(d => d.label),
+              datasets: [{
+                data: data.map(d => d.value),
+                backgroundColor: colors,
+                borderColor: cardBg,
+                borderWidth: 3,
+                hoverOffset: 8
+              }]
+            },
+            options: {
+              responsive: true,
+              maintainAspectRatio: false,
+              cutout: '62%',
+              plugins: {
+                legend: {
+                  position: 'right',
+                  labels: {
+                    color: textColor,
+                    usePointStyle: true,
+                    pointStyle: 'circle',
+                    boxWidth: 8,
+                    padding: 14,
+                    font: { size: 12, weight: '500' },
+                    generateLabels: function(chart) {
+                      const ds = chart.data.datasets[0];
+                      const total = ds.data.reduce((a, b) => a + b, 0);
+                      return chart.data.labels.map((label, i) => ({
+                        text: `${label}  ${total ? ((ds.data[i] / total) * 100).toFixed(1) : 0}%`,
+                        fillStyle: ds.backgroundColor[i],
+                        strokeStyle: ds.backgroundColor[i],
+                        pointStyle: 'circle',
+                        hidden: false,
+                        index: i,
+                        fontColor: textColor
+                      }));
+                    }
+                  }
+                },
+                tooltip: {
+                  callbacks: {
+                    label: function(context) {
+                      const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                      const pct = total ? ((context.parsed / total) * 100).toFixed(1) : 0;
+                      return `${context.label}: ${formatCurrency(context.parsed, currency, exchangeRates)} (${pct}%)`;
+                    }
+                  }
+                }
+              }
+            }
+          });
+        }, 50);
+
+        return () => { if (chartRef.current) chartRef.current.destroy(); };
+      }, [data, colors, themeName]);
+
+      if (!data.length) return <div className="flex items-center justify-center h-full text-app-muted text-sm font-medium">No expense data for this period.</div>;
+      return <canvas ref={canvasRef}></canvas>;
+    };
+
+    const App = () => {
+      const [theme, setTheme] = useState('Pro Dark');
+      const [accentColor, setAccentColor] = useState(() => loadFromStorage('app_v2_accent', ''));
+      const [isPrivate, setIsPrivate] = useState(false);
+      const [deferredPrompt, setDeferredPrompt] = useState(null);
+      const [currency, setCurrency] = useState(() => loadFromStorage('app_v2_currency', 'IDR'));
+      const [exchangeRates, setExchangeRates] = useState({ IDR: 1, USD: 0.000062, EUR: 0.000057 });
+
+      useEffect(() => {
+        const handler = (e) => {
+          e.preventDefault();
+          setDeferredPrompt(e);
+        };
+        window.addEventListener('beforeinstallprompt', handler);
+        return () => window.removeEventListener('beforeinstallprompt', handler);
+      }, []);
+
+      const handleInstallApp = async () => {
+        if (!deferredPrompt) return;
+        deferredPrompt.prompt();
+        const { outcome } = await deferredPrompt.userChoice;
+        if (outcome === 'accepted') setDeferredPrompt(null);
+      };
+
+      useEffect(() => {
+        fetch('https://open.er-api.com/v6/latest/IDR')
+          .then(res => res.json())
+          .then(data => {
+            if (data && data.rates) {
+              setExchangeRates(prev => ({ ...prev, USD: data.rates.USD, EUR: data.rates.EUR }));
+            }
+          })
+          .catch(err => console.warn('Failed to fetch real-time rates, using fallbacks', err));
+      }, []);
+
+      const [isAppearanceOpen, setIsAppearanceOpen] = useState(false);
+      const [transactions, setTransactions] = useState(() => loadFromStorage('app_v2_transactions', SEED_TRANSACTIONS));
+      const [filterType, setFilterType] = useState('All');
+      const [filterCategory, setFilterCategory] = useState('All');
+      const [searchQuery, setSearchQuery] = useState('');
+      const [currentPage, setCurrentPage] = useState(1);
+      const [activeChartTab, setActiveChartTab] = useState('Comparison');
+      const [chartType, setChartType] = useState('Bar');
+      const itemsPerPage = 5;
+      const [editingId, setEditingId] = useState(null);
+      const [toasts, setToasts] = useState([]);
+      const [confirmDialog, setConfirmDialog] = useState(null);
+      const [selectedIds, setSelectedIds] = useState([]);
+
+      /* ── Date-range filter state ── */
+      const [dateRange, setDateRange] = useState('This Month');
+      const [customFrom, setCustomFrom] = useState('');
+      const [customTo, setCustomTo] = useState('');
+
+      /* Dynamic categories (persisted) */
+      const [expenseCategories, setExpenseCategories] = useState(() =>
+        loadFromStorage('app_v2_expenseCategories', DEFAULT_EXPENSE_CATEGORIES)
+      );
+      const [incomeCategories, setIncomeCategories] = useState(() =>
+        loadFromStorage('app_v2_incomeCategories', DEFAULT_INCOME_CATEGORIES)
+      );
+      const [showCatModal, setShowCatModal] = useState(false);
+
+      const addToast = useCallback((message, type = 'success') => {
+        const id = Date.now().toString();
+        setToasts(prev => [...prev, { id, message, type }]);
+        setTimeout(() => setToasts(prev => prev.filter(t => t.id !== id)), 3000);
+      }, []);
+      const dismissToast = useCallback((id) => setToasts(prev => prev.filter(t => t.id !== id)), []);
+
+      const fileInputRef = useRef(null);
+      const handleExport = () => {
+        const exportData = {
+          transactions,
+          expenseCategories,
+          incomeCategories
+        };
+        const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(exportData, null, 2));
+        const downloadAnchorNode = document.createElement('a');
+        downloadAnchorNode.setAttribute("href", dataStr);
+        downloadAnchorNode.setAttribute("download", `expenses_backup_${toLocalDateStr()}.json`);
+        document.body.appendChild(downloadAnchorNode);
+        downloadAnchorNode.click();
+        downloadAnchorNode.remove();
+        addToast('Data exported successfully', 'success');
+      };
+      const handleImport = (e) => {
+        const file = e.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = (event) => {
+          try {
+            const importedData = JSON.parse(event.target.result);
+            let importedTxs = [];
+            let importedExpCats = [];
+            let importedIncCats = [];
+
+            if (Array.isArray(importedData)) {
+              importedTxs = importedData;
+            } else if (importedData && importedData.transactions) {
+              importedTxs = importedData.transactions;
+              importedExpCats = importedData.expenseCategories || [];
+              importedIncCats = importedData.incomeCategories || [];
+            } else {
+              addToast('Invalid data format', 'error');
+              return;
+            }
+
+            const newExpCats = [...expenseCategories];
+            const newIncCats = [...incomeCategories];
+
+            importedExpCats.forEach(cat => {
+              if (!newExpCats.some(c => c.name === cat.name)) newExpCats.push({ name: cat.name, color: cat.color || randomHex() });
+            });
+            importedIncCats.forEach(cat => {
+              if (!newIncCats.some(c => c.name === cat.name)) newIncCats.push({ name: cat.name, color: cat.color || randomHex() });
+            });
+
+            importedTxs.forEach(tx => {
+              if (tx.type === 'Expense' && tx.category) {
+                if (!newExpCats.some(c => c.name === tx.category)) newExpCats.push({ name: tx.category, color: randomHex() });
+              } else if (tx.type === 'Income' && tx.category) {
+                if (!newIncCats.some(c => c.name === tx.category)) newIncCats.push({ name: tx.category, color: randomHex() });
+              }
+            });
+
+            setExpenseCategories(newExpCats);
+            setIncomeCategories(newIncCats);
+            setTransactions(importedTxs);
+            addToast('Data imported successfully', 'success');
+          } catch (err) {
+            addToast('Error reading file', 'error');
+          }
+          if (fileInputRef.current) fileInputRef.current.value = '';
+        };
+        reader.readAsText(file);
+      };
+
+      const handleExportPDF = () => {
+        const { jsPDF } = window.jspdf;
+        const doc = new jsPDF();
+        
+        doc.setFontSize(22);
+        doc.setTextColor(15, 23, 42);
+        doc.text("Finance Overview Report", 14, 22);
+        
+        doc.setFontSize(10);
+        doc.setTextColor(100);
+        doc.text(`Generated: ${new Date().toLocaleString('id-ID')}`, 14, 30);
+        doc.text(`Period: ${dateRange === 'Custom Range' ? `${customFrom} to ${customTo}` : dateRange}`, 14, 35);
+        
+        doc.autoTable({
+          startY: 45,
+          head: [['Summary', 'Value']],
+          body: [
+            ['Total Income', formatCurrency(rangeSummary.income, currency, exchangeRates)],
+            ['Total Expense', formatCurrency(rangeSummary.expense, currency, exchangeRates)],
+            ['Net Balance', formatCurrency(rangeSummary.balance, currency, exchangeRates)],
+          ],
+          headStyles: { fillColor: [16, 185, 129], textColor: 255 },
+          theme: 'striped',
+          margin: { left: 14 }
+        });
+        
+        const tableData = filteredTransactions.map(tx => [
+          tx.date,
+          tx.notes || '-',
+          tx.category,
+          tx.type,
+          formatCurrency(tx.amount, currency, exchangeRates)
+        ]);
+        
+        doc.setFontSize(14);
+        doc.setTextColor(15, 23, 42);
+        doc.text("Transaction Details", 14, doc.lastAutoTable.finalY + 15);
+        
+        doc.autoTable({
+          startY: doc.lastAutoTable.finalY + 22,
+          head: [['Date', 'Description', 'Category', 'Type', 'Amount']],
+          body: tableData,
+          headStyles: { fillColor: [71, 85, 105], textColor: 255 },
+          columnStyles: { 4: { halign: 'right' } },
+          theme: 'grid'
+        });
+        
+        doc.save(`finance_report_${new Date().toISOString().split('T')[0]}.pdf`);
+        addToast('Professional PDF report generated');
+      };
+
+      useEffect(() => { localStorage.setItem('app_v2_expenseCategories', JSON.stringify(expenseCategories)); }, [expenseCategories]);
+      useEffect(() => { localStorage.setItem('app_v2_incomeCategories', JSON.stringify(incomeCategories)); }, [incomeCategories]);
+      useEffect(() => { localStorage.setItem('app_v2_transactions', JSON.stringify(transactions)); }, [transactions]);
+      useEffect(() => { localStorage.setItem('app_v2_currency', JSON.stringify(currency)); }, [currency]);
+      useEffect(() => { localStorage.setItem('app_v2_accent', JSON.stringify(accentColor)); }, [accentColor]);
+      useEffect(() => { localStorage.setItem('app_v2_private', JSON.stringify(isPrivate)); }, [isPrivate]);
+
+      const renderAmount = useCallback((amount, prefix = '') => {
+        return (
+          <span className={isPrivate ? "blur-md select-none pointer-events-none" : ""}>
+            {isPrivate ? "••••••" : `${prefix}${formatCurrency(amount, currency, exchangeRates)}`}
+          </span>
+        );
+      }, [isPrivate, currency, exchangeRates]);
+
+      const handleLoadDemo = () => {
+        const today = new Date();
+        const demoTxs = [];
+        const catsExp = expenseCategories.length ? expenseCategories : DEFAULT_EXPENSE_CATEGORIES;
+        const catsInc = incomeCategories.length ? incomeCategories : DEFAULT_INCOME_CATEGORIES;
+        for (let i = 0; i < 15; i++) {
+          const d = new Date(today);
+          d.setDate(today.getDate() - Math.floor(Math.random() * 7));
+          const isIncome = Math.random() > 0.7;
+          const amt = isIncome ? (Math.floor(Math.random() * 50) + 10) * 10000 : (Math.floor(Math.random() * 20) + 1) * 10000;
+          demoTxs.push({
+            id: 'demo_' + Date.now() + i,
+            type: isIncome ? 'Income' : 'Expense',
+            amount: currency === 'IDR' ? amt : (amt / 15000), // Approximate for USD/EUR demo
+            category: isIncome ? catsInc[Math.floor(Math.random()*catsInc.length)].name : catsExp[Math.floor(Math.random()*catsExp.length)].name,
+            date: toLocalDateStr(d),
+            notes: isIncome ? 'Demo Income' : 'Demo Expense'
+          });
+        }
+        setTransactions(prev => [...demoTxs, ...prev].sort((a,b) => new Date(b.date) - new Date(a.date)));
+        addToast('Demo data loaded successfully', 'success');
+      };
+
+      const handleBulkDelete = () => {
+        if (selectedIds.length === 0) return;
+        setConfirmDialog({
+          title: 'Delete Selected',
+          message: `Are you sure you want to delete ${selectedIds.length} transactions?`,
+          onConfirm: () => {
+            setTransactions(prev => prev.filter(tx => !selectedIds.includes(tx.id)));
+            setSelectedIds([]);
+            addToast(`${selectedIds.length} transactions deleted`, 'success');
+            setConfirmDialog(null);
+          },
+          onCancel: () => setConfirmDialog(null)
+        });
+      };
+
+      const allCategories = useMemo(() => {
+        const seen = new Set();
+        return [...expenseCategories, ...incomeCategories].filter(c => { if (seen.has(c.name)) return false; seen.add(c.name); return true; });
+      }, [expenseCategories, incomeCategories]);
+
+      const getCatColor = useCallback((name) => {
+        return allCategories.find(c => c.name === name)?.color || '#6b7280';
+      }, [allCategories]);
+
+      const filterDropdownCategories = useMemo(() => {
+        if (filterType === 'Income') return incomeCategories;
+        if (filterType === 'Expense') return expenseCategories;
+        return allCategories;
+      }, [filterType, incomeCategories, expenseCategories, allCategories]);
+
+      useEffect(() => {
+        if (filterCategory !== 'All') {
+          const isValid = filterDropdownCategories.some(c => c.name === filterCategory);
+          if (!isValid) setFilterCategory('All');
+        }
+      }, [filterType, filterDropdownCategories, filterCategory]);
+
+      useEffect(() => {
+        document.documentElement.className = '';
+        if (theme === 'Pro Dark') document.documentElement.classList.add('theme-pro-dark');
+        else if (theme === 'Midnight Blue') document.documentElement.classList.add('theme-midnight');
+        else if (theme === 'Crimson') document.documentElement.classList.add('theme-crimson');
+
+        if (accentColor) {
+          document.documentElement.style.setProperty('--primary', accentColor);
+        } else {
+          document.documentElement.style.removeProperty('--primary');
+        }
+      }, [theme, accentColor]);
+
+      useEffect(() => {
+        setCurrentPage(1);
+      }, [filterType, filterCategory, searchQuery, dateRange, customFrom, customTo]);
+
+      /* ── Compute date bounds from dateRange ── */
+      const dateBounds = useMemo(() => {
+        const today = new Date();
+        if (dateRange === 'This Month') {
+          const y = today.getFullYear(), m = today.getMonth();
+          const first = new Date(y, m, 1);
+          const last = new Date(y, m + 1, 0);
+          return { from: toLocalDateStr(first), to: toLocalDateStr(last) };
+        }
+        if (dateRange === 'Last 30 Days') {
+          const from = new Date(today);
+          from.setDate(from.getDate() - 29);
+          return { from: toLocalDateStr(from), to: toLocalDateStr(today) };
+        }
+        if (dateRange === 'This Year') {
+          const y = today.getFullYear();
+          const first = new Date(y, 0, 1);
+          const last = new Date(y, 11, 31);
+          return { from: toLocalDateStr(first), to: toLocalDateStr(last) };
+        }
+        if (dateRange === 'Custom Range' && customFrom && customTo) {
+          return { from: customFrom, to: customTo };
+        }
+        return { from: '', to: '' }; // All time
+      }, [dateRange, customFrom, customTo]);
+
+      /* Form state — formType must be declared before activeCats/setActiveCats */
+      const [formType, setFormType] = useState('Expense');
+      const [formDate, setFormDate] = useState(toLocalDateStr());
+      const [formAmount, setFormAmount] = useState('');
+      const [formCategory, setFormCategory] = useState(
+        () => loadFromStorage('app_v2_expenseCategories', DEFAULT_EXPENSE_CATEGORIES)[0]?.name || DEFAULT_EXPENSE_CATEGORIES[0].name
+      );
+      const [formNotes, setFormNotes] = useState('');
+
+      /* activeCats depends on formType, so must come after formType */
+      const activeCats = formType === 'Expense' ? expenseCategories : incomeCategories;
+
+      const handleAddCategory = (cat, type) => {
+        if (type === 'Expense') setExpenseCategories(prev => [...prev, cat]);
+        else setIncomeCategories(prev => [...prev, cat]);
+      };
+
+      const handleDeleteCategory = (name, type) => {
+        if (type === 'Expense') {
+          setExpenseCategories(prev => {
+            const next = prev.filter(c => c.name !== name);
+            if (formType === 'Expense' && formCategory === name) setFormCategory(next[0]?.name ?? '');
+            return next;
+          });
+        } else {
+          setIncomeCategories(prev => {
+            const next = prev.filter(c => c.name !== name);
+            if (formType === 'Income' && formCategory === name) setFormCategory(next[0]?.name ?? '');
+            return next;
+          });
+        }
+        if (filterCategory === name) setFilterCategory('All');
+        setTransactions(prev => prev.filter(tx => tx.category !== name));
+      };
+
+      const handleAmountChange = (e) => {
+        let rawValue = e.target.value.replace(/[^0-9.]/g, '');
+        const parts = rawValue.split('.');
+        if (parts.length > 2) {
+          rawValue = parts[0] + '.' + parts.slice(1).join('');
+        }
+        let formattedValue = '';
+        if (rawValue) {
+          const splitValues = rawValue.split('.');
+          const integerPart = splitValues[0];
+          const decimalPart = splitValues.length > 1 ? '.' + splitValues[1] : '';
+          if (integerPart) {
+            formattedValue = parseInt(integerPart, 10).toLocaleString('en-US') + decimalPart;
+          } else {
+            formattedValue = decimalPart;
+          }
+        }
+        setFormAmount(formattedValue);
+      };
+
+      const handleAddTransaction = (e) => {
+        e.preventDefault();
+        
+        const rawAmount = parseFloat(formAmount.replace(/,/g, ''));
+        if (!rawAmount || isNaN(rawAmount) || rawAmount <= 0) return;
+
+        if (editingId) {
+          setTransactions(prev => prev.map(tx => 
+            tx.id === editingId ? { ...tx, type: formType, amount: rawAmount, category: formCategory, date: formDate, notes: formNotes } : tx
+          ));
+          setEditingId(null);
+          addToast('Transaction updated', 'success');
+        } else {
+          const newTx = {
+            id: Date.now().toString(),
+            type: formType,
+            amount: rawAmount,
+            category: formCategory,
+            date: formDate,
+            notes: formNotes
+          };
+          setTransactions(prev => [newTx, ...prev].sort((a, b) => new Date(b.date) - new Date(a.date)));
+          addToast('Transaction added', 'success');
+        }
+        
+        setFormAmount('');
+        setFormNotes('');
+      };
+
+      const handleEdit = (tx) => {
+        setEditingId(tx.id);
+        setFormType(tx.type);
+        setFormCategory(tx.category);
+        setFormDate(tx.date);
+        
+        const parts = tx.amount.toString().split('.');
+        const integerPart = parseInt(parts[0], 10).toLocaleString('en-US');
+        const formattedAmount = parts.length > 1 ? `${integerPart}.${parts[1]}` : integerPart;
+        
+        setFormAmount(formattedAmount);
+        setFormNotes(tx.notes);
+      };
+
+      const handleDelete = (id) => {
+        setConfirmDialog({
+          title: 'Delete Transaction',
+          message: 'Are you sure you want to delete this transaction?',
+          onConfirm: () => {
+            setTransactions(prev => prev.filter(tx => tx.id !== id));
+            if (editingId === id) {
+              setEditingId(null);
+              setFormAmount('');
+              setFormNotes('');
+            }
+            addToast('Transaction deleted', 'success');
+            setConfirmDialog(null);
+          },
+          onCancel: () => setConfirmDialog(null)
+        });
+      };
+
+      const summary = useMemo(() => {
+        return transactions.reduce((acc, tx) => {
+          if (tx.type === 'Income') {
+            acc.income += tx.amount;
+            acc.balance += tx.amount;
+          } else {
+            acc.expense += tx.amount;
+            acc.balance -= tx.amount;
+          }
+          return acc;
+        }, { balance: 0, income: 0, expense: 0 });
+      }, [transactions]);
+
+      /* Date-range filtered subset (used by charts + summary cards) */
+      const rangeTransactions = useMemo(() => {
+        if (!dateBounds.from || !dateBounds.to) return transactions;
+        return transactions.filter(tx => tx.date >= dateBounds.from && tx.date <= dateBounds.to);
+      }, [transactions, dateBounds]);
+
+      const chartData = useMemo(() => {
+        const dataByDate = {};
+        rangeTransactions.forEach(tx => {
+          if (!dataByDate[tx.date]) dataByDate[tx.date] = { income: 0, expense: 0 };
+          if (tx.type === 'Expense') dataByDate[tx.date].expense += tx.amount;
+          if (tx.type === 'Income') dataByDate[tx.date].income += tx.amount;
+        });
+
+        return Object.entries(dataByDate)
+          .map(([date, values]) => ({
+            date: date.substring(5),
+            fullDate: date,
+            ...values
+          }))
+          .sort((a, b) => a.fullDate.localeCompare(b.fullDate));
+      }, [rangeTransactions]);
+
+      const candlestickData = useMemo(() => {
+        if (chartType !== 'Candlestick' || rangeTransactions.length === 0) return [];
+        const allSorted = [...transactions].sort((a, b) => a.date.localeCompare(b.date));
+        const rangeSorted = [...rangeTransactions].sort((a, b) => a.date.localeCompare(b.date));
+        const startDate = rangeSorted[0].date;
+        let balance = allSorted.filter(tx => tx.date < startDate).reduce((acc, tx) => acc + (tx.type === 'Income' ? tx.amount : -tx.amount), 0);
+        const groups = {};
+        rangeSorted.forEach(tx => {
+          if (!groups[tx.date]) groups[tx.date] = [];
+          groups[tx.date].push(tx);
+        });
+        return Object.keys(groups).sort().map(date => {
+          const o = balance;
+          let h = o, l = o;
+          groups[date].forEach(tx => {
+            balance += (tx.type === 'Income' ? tx.amount : -tx.amount);
+            if (balance > h) h = balance;
+            if (balance < l) l = balance;
+          });
+          return { 
+            isoDate: date, // ISO string for Time Scale
+            o, h, l, c: balance 
+          };
+        });
+      }, [transactions, rangeTransactions, chartType]);
+
+      /* Pie chart data: expense breakdown by category */
+      const pieData = useMemo(() => {
+        const map = {};
+        rangeTransactions.filter(tx => tx.type === 'Expense').forEach(tx => {
+          map[tx.category] = (map[tx.category] || 0) + tx.amount;
+        });
+        return Object.entries(map)
+          .map(([label, value]) => ({ label, value }))
+          .sort((a, b) => b.value - a.value);
+      }, [rangeTransactions]);
+
+      const pieColors = useMemo(() => pieData.map(d => getCatColor(d.label)), [pieData, getCatColor]);
+
+      /* Summary scoped to date range */
+      const rangeSummary = useMemo(() => {
+        return rangeTransactions.reduce((acc, tx) => {
+          if (tx.type === 'Income') { acc.income += tx.amount; acc.balance += tx.amount; }
+          else { acc.expense += tx.amount; acc.balance -= tx.amount; }
+          return acc;
+        }, { balance: 0, income: 0, expense: 0 });
+      }, [rangeTransactions]);
+
+      const filteredTransactions = useMemo(() => {
+        return rangeTransactions.filter(tx => {
+          const matchType = filterType === 'All' || tx.type === filterType;
+          const matchCat = filterCategory === 'All' || tx.category === filterCategory;
+          const matchSearch = tx.notes.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            tx.category.toLowerCase().includes(searchQuery.toLowerCase());
+          return matchType && matchCat && matchSearch;
+        });
+      }, [rangeTransactions, filterType, filterCategory, searchQuery]);
+
+      const totalPages = Math.ceil(filteredTransactions.length / itemsPerPage);
+      const paginatedTransactions = useMemo(() => {
+        const start = (currentPage - 1) * itemsPerPage;
+        return filteredTransactions.slice(start, start + itemsPerPage);
+      }, [filteredTransactions, currentPage]);
+
+      const groupedTransactions = useMemo(() => {
+        const groups = {};
+        const today = new Date();
+        const yesterday = new Date(today);
+        yesterday.setDate(yesterday.getDate() - 1);
+
+        paginatedTransactions.forEach(tx => {
+          const [year, month, day] = tx.date.split('-');
+          const d = new Date(year, month - 1, day);
+
+          let dateLabel = d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+          if (d.toDateString() === today.toDateString()) dateLabel = 'Today';
+          else if (d.toDateString() === yesterday.toDateString()) dateLabel = 'Yesterday';
+
+          if (!groups[dateLabel]) groups[dateLabel] = [];
+          groups[dateLabel].push(tx);
+        });
+        return groups;
+      }, [paginatedTransactions]);
+
+      return (
+        <React.Fragment>
+        <div className="flex flex-col md:flex-row min-h-screen bg-app-bg text-app-text font-sans transition-colors duration-300">
+          
+          {/* Left Sidebar (Fixed on Desktop) */}
+          <div className="w-full md:w-80 flex-shrink-0 flex flex-col h-auto md:h-[100vh] md:sticky md:top-0 border-b md:border-b-0 md:border-r border-app-border bg-app-card shadow-app z-20 overflow-hidden transition-colors duration-300">
+            
+            {/* FIXED TOP: Branding */}
+            <div className="p-6 pb-4 shrink-0 border-b border-app-border">
+              <h1 className="text-2xl font-bold text-app-text tracking-tight transition-colors duration-200">Finance Overview</h1>
+              <p className="text-app-muted mt-1 text-sm">Track your daily cash and expenses</p>
+            </div>
+
+            <form onSubmit={handleAddTransaction} className="flex-1 flex flex-col min-h-0 overflow-hidden">
+              
+              {/* SCROLLABLE MIDDLE */}
+              <div className="flex-1 overflow-y-auto p-6 flex flex-col gap-y-6 custom-scrollbar">
+                
+                {/* Theme Picker */}
+                <div className="flex flex-col">
+                  <button 
+                    type="button" 
+                    onClick={() => setIsAppearanceOpen(!isAppearanceOpen)}
+                    className="flex items-center justify-between w-full py-2 text-xs font-semibold text-app-muted hover:text-app-text uppercase tracking-wider transition-colors outline-none"
+                  >
+                    <span>Appearance</span>
+                    <svg 
+                      xmlns="http://www.w3.org/2000/svg" 
+                      width="14" height="14" 
+                      viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"
+                      className={`transition-transform duration-300 ${isAppearanceOpen ? 'rotate-180' : ''}`}
+                    >
+                      <polyline points="6 9 12 15 18 9"/>
+                    </svg>
+                  </button>
+                  <div 
+                    className={`flex flex-col gap-4 overflow-hidden transition-all duration-300 ease-in-out ${isAppearanceOpen ? 'max-h-96 opacity-100 mt-2' : 'max-h-0 opacity-0 mt-0'}`}
+                  >
+                    <div className="grid grid-cols-2 gap-2">
+                      {[{id: 'Classic Light', label: 'Classic'}, {id: 'Pro Dark', label: 'Dark'}, {id: 'Midnight Blue', label: 'Night'}, {id: 'Crimson', label: 'Ruby'}].map(t => (
+                        <button key={t.id} onClick={() => setTheme(t.id)}
+                          className={`px-4 py-2.5 text-xs font-semibold rounded-lg border transition-all duration-200 text-center ${theme === t.id ? 'border-app-primary text-app-primary bg-app-bg' : 'border-app-border text-app-btn opacity-80 hover:opacity-100 hover:bg-app-bg'}`}>
+                          {t.label}
+                        </button>
+                      ))}
+                    </div>
+                    <div>
+                      <p className="text-[10px] font-semibold text-app-muted uppercase tracking-wider mb-2">Accent Color</p>
+                      <div className="flex gap-2">
+                        {[{name: 'Default', hex: ''}, {name: 'Emerald', hex: '#10b981'}, {name: 'Blue', hex: '#3b82f6'}, {name: 'Purple', hex: '#8b5cf6'}, {name: 'Orange', hex: '#f97316'}].map(c => (
+                          <button key={c.name} onClick={() => setAccentColor(c.hex)} title={c.name}
+                            className={`w-6 h-6 rounded-full border-2 transition-transform ${accentColor === c.hex || (!accentColor && c.hex === '') ? 'scale-110 border-app-text shadow-sm' : 'border-transparent hover:scale-110'}`}
+                            style={{background: c.hex || 'var(--primary)'}}>
+                            {(!accentColor && c.hex === '') || accentColor === c.hex ? <span className="flex items-center justify-center h-full w-full text-white drop-shadow-md"><svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg></span> : null}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                    {deferredPrompt && (
+                      <button type="button" onClick={handleInstallApp} className="w-full py-2.5 mt-1 text-xs font-semibold rounded-lg bg-gradient-to-r from-app-primary to-app-primaryHover text-white shadow-md hover:shadow-lg transition-all flex items-center justify-center gap-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>
+                        Install App
+                      </button>
+                    )}
+                  </div>
+                </div>
+
+                {/* Currency Selector */}
+                <div>
+                  <label className="block text-xs font-semibold text-app-muted uppercase tracking-wider mb-2">Currency</label>
+                  <select value={currency} onChange={e => setCurrency(e.target.value)}
+                    className="w-full px-3 py-2 text-sm rounded-lg border border-app-border bg-app-bg text-app-text outline-none focus:ring-2 focus:ring-app-primary">
+                    <option value="IDR">Rp (IDR)</option>
+                    <option value="USD">$ (USD)</option>
+                    <option value="EUR">€ (EUR)</option>
+                  </select>
+                </div>
+
+                {/* Data Tools */}
+                <div className="flex flex-col gap-2">
+                  <div className="flex gap-2">
+                    <button type="button" onClick={handleExport} className="flex-1 py-2 text-xs font-semibold rounded-lg border border-app-border bg-app-bg text-app-btn opacity-80 hover:opacity-100 hover:bg-app-card transition-colors flex items-center justify-center gap-1.5">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>
+                      JSON
+                    </button>
+                    <input type="file" accept=".json" className="hidden" ref={fileInputRef} onChange={handleImport} />
+                    <button type="button" onClick={() => fileInputRef.current?.click()} className="flex-1 py-2 text-xs font-semibold rounded-lg border border-app-border bg-app-bg text-app-btn opacity-80 hover:opacity-100 hover:bg-app-card transition-colors flex items-center justify-center gap-1.5">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" x2="12" y1="3" y2="15"/></svg>
+                      Import
+                    </button>
+                  </div>
+                  <button type="button" onClick={handleExportPDF} className="w-full py-2.5 text-xs font-semibold rounded-lg bg-app-primary text-white shadow-md hover:bg-app-primaryHover transition-all flex items-center justify-center gap-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/><path d="M16 13H8"/><path d="M16 17H8"/><path d="M10 9H8"/></svg>
+                    Export Professional PDF
+                  </button>
+                  <button type="button" onClick={handleLoadDemo} className="w-full py-2.5 text-xs font-semibold rounded-lg border border-app-border bg-app-bg text-app-text hover:bg-app-card transition-all flex items-center justify-center gap-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                    Load Demo Data
+                  </button>
+                </div>
+
+                <div className="h-px w-full bg-app-border shrink-0"></div>
+
+                {/* Form Inputs */}
+                <div className="flex flex-col gap-y-3 shrink-0">
+                  <h2 className="text-base font-bold text-app-text">{editingId ? 'Edit Transaction' : 'Add Transaction'}</h2>
+
+                  <div className="flex rounded-xl p-1 bg-app-bg border border-app-border shrink-0">
+                    <button type="button" onClick={() => { setFormType('Expense'); setFormCategory(expenseCategories[0]?.name ?? ''); }}
+                      className={`flex-1 py-2 text-sm font-semibold rounded-lg transition-colors ${formType === 'Expense' ? 'bg-app-card text-app-expense shadow-sm' : 'text-app-muted hover:text-app-text'}`}>
+                      Expense
+                    </button>
+                    <button type="button" onClick={() => { setFormType('Income'); setFormCategory(incomeCategories[0]?.name ?? ''); }}
+                      className={`flex-1 py-2 text-sm font-semibold rounded-lg transition-colors ${formType === 'Income' ? 'bg-app-card text-app-primary shadow-sm' : 'text-app-muted hover:text-app-text'}`}>
+                      Income
+                    </button>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-semibold tracking-wide text-app-muted mb-1.5 transition-colors duration-200">Date</label>
+                    <input type="date" required value={formDate} onChange={e => setFormDate(e.target.value)}
+                      className="w-full px-3.5 py-2.5 text-base sm:text-sm rounded-xl border border-app-border bg-app-bg text-app-text focus:bg-app-card focus:ring-2 focus:ring-app-primary focus:ring-opacity-40 focus:border-app-primary transition-all duration-300 outline-none" />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-semibold tracking-wide text-app-muted mb-1.5 transition-colors duration-200">Amount</label>
+                    <div className="relative">
+                      <span className="absolute left-3.5 top-1/2 -translate-y-1/2 text-app-muted font-medium text-base sm:text-sm transition-colors duration-200">Rp</span>
+                      <input type="text" inputMode="decimal" required value={formAmount} onChange={handleAmountChange} placeholder="0"
+                        className="w-full pl-10 pr-3.5 py-2.5 text-base sm:text-sm rounded-xl border border-app-border bg-app-bg text-app-text focus:bg-app-card focus:ring-2 focus:ring-app-primary focus:ring-opacity-40 focus:border-app-primary transition-all duration-300 outline-none" />
+                    </div>
+                  </div>
+
+                  <div>
+                    <div className="flex items-center justify-between mb-1.5">
+                      <label className="block text-sm font-semibold tracking-wide text-app-muted transition-colors duration-200">Category</label>
+                      <button type="button" onClick={() => setShowCatModal(true)}
+                        className="flex items-center gap-1 px-2.5 py-1 rounded-lg text-xs font-semibold border border-app-border text-app-btn opacity-80 hover:opacity-100 transition-all duration-300">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14"/><path d="M12 5v14"/></svg>
+                        Manage
+                      </button>
+                    </div>
+                    <div className="relative">
+                      {/* Color bullet for selected category */}
+                      <span className="absolute left-3 top-1/2 -translate-y-1/2 w-2.5 h-2.5 rounded-full shrink-0 pointer-events-none"
+                        style={{background: getCatColor(formCategory)}}></span>
+                      <select value={formCategory} onChange={e => setFormCategory(e.target.value)}
+                        className="w-full pl-8 pr-3.5 py-2.5 text-base sm:text-sm rounded-xl border border-app-border bg-app-bg text-app-text focus:bg-app-card focus:ring-2 focus:ring-app-primary focus:ring-opacity-40 focus:border-app-primary transition-all duration-300 outline-none appearance-none">
+                        {activeCats.map(cat => (
+                          <option key={cat.name} value={cat.name}>{cat.name}</option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-semibold tracking-wide text-app-muted mb-1.5 transition-colors duration-200">Notes</label>
+                    <textarea rows="2" value={formNotes} onChange={e => setFormNotes(e.target.value)} placeholder="What was this for?"
+                      className="w-full px-3.5 py-2.5 text-base sm:text-sm rounded-xl border border-app-border bg-app-bg text-app-text focus:bg-app-card focus:ring-2 focus:ring-app-primary focus:ring-opacity-40 focus:border-app-primary transition-all duration-300 outline-none resize-none"></textarea>
+                  </div>
+                </div>
+
+              </div>
+
+              {/* FIXED BOTTOM: Buttons */}
+              <div className="p-6 pt-4 pb-6 border-t border-app-border shrink-0 bg-app-card shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)] z-10 relative">
+                <button type="submit" 
+                  className={`w-full py-3 rounded-xl text-sm font-semibold text-white transition-all duration-300 shadow-md hover:shadow-lg ${formType === 'Expense' ? 'bg-app-expense hover:bg-app-expenseHover hover:-translate-y-0.5' : 'bg-app-primary hover:bg-app-primaryHover hover:-translate-y-0.5'}`}>
+                  {editingId ? 'Update Transaction' : `Add ${formType}`}
+                </button>
+                {editingId && (
+                  <button type="button" onClick={() => { setEditingId(null); setFormType('Expense'); setFormCategory(expenseCategories[0]?.name ?? ''); setFormDate(toLocalDateStr()); setFormAmount(''); setFormNotes(''); }}
+                    className="w-full py-3 rounded-xl text-sm font-semibold text-app-btn opacity-80 hover:opacity-100 border border-app-border hover:bg-app-bg transition-all duration-200 mt-3">
+                    Cancel
+                  </button>
+                )}
+              </div>
+            </form>
+          </div>
+
+
+
+
+
+
+
+
+
+
+          {/* Right Content */}
+          <div className="flex-1 min-h-screen p-4 md:p-8 bg-app-bg transition-colors duration-300">
+            <div className="max-w-5xl mx-auto space-y-8">
+
+              {/* ── Date Range Selector (shared by cards + charts + table) ── */}
+              <div className="flex flex-wrap items-center gap-3">
+                <div className="flex rounded-lg p-1 bg-app-card border border-app-border shadow-app">
+                  {['This Month', 'Last 30 Days', 'This Year', 'Custom Range'].map(opt => (
+                    <button key={opt} onClick={() => setDateRange(opt)}
+                      className={`px-3.5 py-1.5 text-xs font-semibold rounded-md transition-all ${dateRange === opt ? 'bg-app-primary text-white shadow-sm' : 'text-app-muted hover:text-app-text'}`}>
+                      {opt}
+                    </button>
+                  ))}
+                </div>
+                {dateRange === 'Custom Range' && (
+                  <div className="flex items-center gap-2">
+                    <input type="date" value={customFrom} onChange={e => setCustomFrom(e.target.value)}
+                      className="px-2.5 py-1.5 text-xs rounded-lg border border-app-border bg-app-bg text-app-text outline-none focus:ring-2 focus:ring-app-primary" />
+                    <span className="text-xs text-app-muted">to</span>
+                    <input type="date" value={customTo} onChange={e => setCustomTo(e.target.value)}
+                      className="px-2.5 py-1.5 text-xs rounded-lg border border-app-border bg-app-bg text-app-text outline-none focus:ring-2 focus:ring-app-primary" />
+                  </div>
+                )}
+              </div>
+
+              {/* Top Dashboard Cards */}
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                {/* ── Enhanced Net Balance Card ── */}
+                <div className="bg-app-card rounded-2xl p-6 shadow-app border border-app-border flex flex-col justify-between relative overflow-hidden group transition-colors duration-300">
+                  {/* Interactive Privacy Toggle Button */}
+                  <button onClick={() => setIsPrivate(!isPrivate)} className="absolute top-4 right-4 p-2 rounded-full hover:bg-white/10 transition-all cursor-pointer z-50 opacity-50 hover:opacity-100 text-app-text" title="Toggle Privacy">
+                    {isPrivate ? (
+                      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9.88 9.88a3 3 0 1 0 4.24 4.24"/><path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68"/><path d="M6.61 6.61A13.526 13.526 0 0 0 2 12s3 7 10 7a9.74 9.74 0 0 0 5.39-1.61"/><line x1="2" x2="22" y1="2" y2="22"/></svg>
+                    ) : (
+                      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"/><circle cx="12" cy="12" r="3"/></svg>
+                    )}
+                  </button>
+                  <div>
+                    <div className="flex items-center justify-between">
+                      <p className="text-xs font-semibold text-app-muted uppercase tracking-wider">Net Balance</p>
+                    </div>
+                    <p className={`text-3xl lg:text-4xl font-bold mt-2 tracking-tight ${rangeSummary.balance >= 0 ? 'text-app-primary' : 'text-app-expense'}`}>
+                      {renderAmount(rangeSummary.balance)}
+                    </p>
+                  </div>
+                  {/* Income vs Expense ratio bar */}
+                  {(rangeSummary.income > 0 || rangeSummary.expense > 0) && (() => {
+                    const total = rangeSummary.income + rangeSummary.expense;
+                    const incomePct = ((rangeSummary.income / total) * 100).toFixed(0);
+                    const expensePct = ((rangeSummary.expense / total) * 100).toFixed(0);
+                    return (
+                      <div className="mt-4">
+                        <div className="flex justify-between text-[11px] font-medium mb-1.5">
+                          <span className="text-app-primary">Income {incomePct}%</span>
+                          <span className="text-app-expense">Expense {expensePct}%</span>
+                        </div>
+                        <div className="h-2 rounded-full bg-app-bg overflow-hidden flex">
+                          <div className="h-full rounded-l-full transition-all duration-500" style={{width: `${incomePct}%`, background: 'var(--primary)'}}></div>
+                          <div className="h-full rounded-r-full transition-all duration-500" style={{width: `${expensePct}%`, background: 'var(--expense)'}}></div>
+                        </div>
+                        <p className="mt-2 text-xs text-app-muted">
+                          {rangeSummary.income > 0
+                            ? `Savings rate: ${((Math.max(0, rangeSummary.balance) / rangeSummary.income) * 100).toFixed(1)}%`
+                            : 'No income recorded'}
+                        </p>
+                      </div>
+                    );
+                  })()}
+                  <div className={`mt-3 flex items-center gap-1.5 text-xs font-semibold ${rangeSummary.balance >= 0 ? 'text-app-primary' : 'text-app-expense'}`}>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                      {rangeSummary.balance >= 0
+                        ? <><polyline points="22 7 13.5 15.5 8.5 10.5 2 17" /><polyline points="16 7 22 7 22 13" /></>
+                        : <><polyline points="22 17 13.5 8.5 8.5 13.5 2 7" /><polyline points="16 17 22 17 22 11" /></>}
+                    </svg>
+                    <span>{rangeSummary.balance >= 0 ? 'Net Positive' : 'Net Negative'}</span>
+                  </div>
+                </div>
+
+                {/* Income Card */}
+                <div className="bg-app-card rounded-2xl p-6 shadow-app border border-app-border flex flex-col justify-between transition-colors duration-300">
+                  <div>
+                    <div className="flex justify-between items-start">
+                      <p className="text-sm font-medium text-app-muted">Total Income</p>
+                      <div className="p-2 bg-app-bg rounded-full text-app-primary border border-app-border">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="22 7 13.5 15.5 8.5 10.5 2 17" /><polyline points="16 7 22 7 22 13" /></svg>
+                      </div>
+                    </div>
+                    <p className="text-3xl font-bold text-app-text mt-2">{renderAmount(rangeSummary.income)}</p>
+                  </div>
+                  <p className="text-xs text-app-muted mt-3">{rangeTransactions.filter(t => t.type === 'Income').length} transactions</p>
+                </div>
+
+                {/* Expense Card */}
+                <div className="bg-app-card rounded-2xl p-6 shadow-app border border-app-border flex flex-col justify-between transition-colors duration-300">
+                  <div>
+                    <div className="flex justify-between items-start">
+                      <p className="text-sm font-medium text-app-muted">Total Expenses</p>
+                      <div className="p-2 bg-app-bg rounded-full text-app-expense border border-app-border">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="22 17 13.5 8.5 8.5 13.5 2 7" /><polyline points="16 17 22 17 22 11" /></svg>
+                      </div>
+                    </div>
+                    <p className="text-3xl font-bold text-app-text mt-2">{renderAmount(rangeSummary.expense)}</p>
+                  </div>
+                  <p className="text-xs text-app-muted mt-3">{rangeTransactions.filter(t => t.type === 'Expense').length} transactions</p>
+                </div>
+              </div>
+
+              {/* ── Charts Grid: Bar + Pie ── */}
+              <div className="grid grid-cols-1 xl:grid-cols-5 gap-6">
+                {/* Bar Chart – 3/5 */}
+                <div className="xl:col-span-3 bg-app-card rounded-2xl p-6 shadow-app border border-app-border transition-colors duration-300">
+                  <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
+                    <div className="flex flex-col gap-1">
+                      <h2 className="text-lg font-bold text-app-text transition-colors duration-200">Financial Trends</h2>
+                      <div className="flex items-center gap-2">
+                        {['Bar', 'Line'].map(type => (
+                          <button key={type} onClick={() => setChartType(type)}
+                            className={`px-3 py-1 text-[10px] font-bold uppercase tracking-wider rounded-full border transition-all ${chartType === type ? 'bg-app-primary border-app-primary text-white shadow-sm' : 'border-app-border text-app-btn opacity-70 hover:opacity-100 hover:bg-app-bg'}`}>
+                            {type}
+                          </button>
+                        ))}
+                        <button onClick={() => setChartType('Candlestick')}
+                          className={`px-3 py-1 text-[10px] font-bold uppercase tracking-wider rounded-full border transition-all ${chartType === 'Candlestick' ? 'bg-app-primary border-app-primary text-white shadow-sm' : 'border-app-border text-app-btn opacity-70 hover:opacity-100 hover:bg-app-bg'}`}>
+                          Trend+
+                        </button>
+                      </div>
+                    </div>
+                    <div className="flex rounded-lg p-1 bg-app-bg border border-app-border">
+                      {['Comparison', 'Income', 'Expense'].map(tab => (
+                        <button key={tab} onClick={() => setActiveChartTab(tab)}
+                          className={`px-3 py-1.5 text-xs font-medium rounded-md transition-colors ${activeChartTab === tab ? 'bg-app-card text-app-text shadow-sm' : 'text-app-muted hover:text-app-text'}`}>
+                          {tab}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                  <div className="h-64 w-full relative">
+                    <FinancialChart 
+                      data={chartType === 'Candlestick' ? candlestickData : chartData} 
+                      themeName={theme} 
+                      chartType={chartType} 
+                      categoryFilter={activeChartTab} 
+                      transactions={rangeTransactions}
+                      currency={currency}
+                      exchangeRates={exchangeRates}
+                    />
+                  </div>
+                </div>
+
+                {/* Pie Chart – 2/5 */}
+                <div className="xl:col-span-2 bg-app-card rounded-2xl p-6 shadow-app border border-app-border transition-colors duration-300 flex flex-col">
+                  <h2 className="text-lg font-bold text-app-text mb-4 transition-colors duration-200">Expenses by Category</h2>
+                  <div className="flex-1 min-h-[240px] relative">
+                    <ExpensePieChart data={pieData} colors={pieColors} themeName={theme} currency={currency} exchangeRates={exchangeRates} />
+                  </div>
+                  {pieData.length > 0 && (
+                    <div className="mt-4 pt-4 border-t border-app-border">
+                      <p className="text-xs text-app-muted">Top category: <span className="font-semibold text-app-text">{pieData[0].label}</span> — {renderAmount(pieData[0].value)}</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* History Table Area */}
+              <div className="bg-app-card rounded-2xl shadow-app border border-app-border overflow-hidden flex flex-col transition-colors duration-300">
+                <div className="p-6 border-b border-app-border flex flex-col md:flex-row md:items-center justify-between gap-4">
+                  <div className="flex items-center gap-3">
+                    <h2 className="text-2xl font-bold text-app-text transition-colors duration-200">Recent Transactions</h2>
+                    {selectedIds.length > 0 && (
+                      <button onClick={handleBulkDelete} className="px-3 py-1.5 text-xs font-semibold rounded-lg bg-app-expense text-white shadow-md hover:bg-app-expenseHover transition-colors flex items-center gap-1.5 animate-[slideUp_0.2s_ease-out]">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>
+                        Delete Selected ({selectedIds.length})
+                      </button>
+                    )}
+                  </div>
+
+                  {/* Filters */}
+                  <div className="flex flex-wrap gap-2">
+                    <select value={filterType} onChange={e => setFilterType(e.target.value)}
+                      className="px-3 py-1.5 text-sm rounded-lg border border-app-border bg-app-bg text-app-text outline-none focus:ring-2 focus:ring-app-primary">
+                      <option value="All">All Types</option>
+                      <option value="Income">Income</option>
+                      <option value="Expense">Expense</option>
+                    </select>
+
+                    <select value={filterCategory} onChange={e => setFilterCategory(e.target.value)}
+                      className="px-3 py-1.5 text-sm rounded-lg border border-app-border bg-app-bg text-app-text outline-none focus:ring-2 focus:ring-app-primary">
+                      <option value="All">All Categories</option>
+                      {filterDropdownCategories.map(cat => <option key={cat.name} value={cat.name}>{cat.name}</option>)}
+                    </select>
+
+                    <div className="relative">
+                      <svg className="absolute left-2.5 top-1/2 -translate-y-1/2 text-app-muted" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8" /><path d="m21 21-4.3-4.3" /></svg>
+                      <input type="text" placeholder="Search..." value={searchQuery} onChange={e => setSearchQuery(e.target.value)}
+                        className="w-32 md:w-40 pl-8 pr-3 py-1.5 text-sm rounded-lg border border-app-border bg-app-bg text-app-text outline-none focus:ring-2 focus:ring-app-primary" />
+                    </div>
+                  </div>
+                </div>
+
+                <div className="overflow-x-auto w-full max-h-[400px]">
+                  <table className="w-full text-left border-collapse min-w-[600px]">
+                    <thead className="sticky top-0 bg-app-card z-10 shadow-sm border-b border-app-border">
+                      <tr className="text-app-muted text-xs uppercase tracking-wider">
+                        <th className="px-4 py-4 w-10 text-center">
+                          <input type="checkbox" onChange={e => setSelectedIds(e.target.checked ? paginatedTransactions.map(t => t.id) : [])} checked={paginatedTransactions.length > 0 && paginatedTransactions.every(t => selectedIds.includes(t.id))} className="w-4 h-4 rounded border-app-border text-app-primary focus:ring-app-primary accent-app-primary" />
+                        </th>
+                        <th className="px-4 py-4 font-medium">Date</th>
+                        <th className="px-6 py-4 font-medium">Details</th>
+                        <th className="px-6 py-4 font-medium">Category</th>
+                        <th className="px-6 py-4 font-medium text-right">Amount</th>
+                        <th className="px-6 py-4 font-medium text-center">Actions</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-app-border bg-app-card">
+                      {Object.keys(groupedTransactions).length > 0 ? Object.entries(groupedTransactions).map(([dateLabel, txs]) => (
+                        <React.Fragment key={dateLabel}>
+                          <tr className="bg-app-bg">
+                            <td colSpan="6" className="px-6 py-2 text-xs font-semibold text-app-muted">
+                              {dateLabel}
+                            </td>
+                          </tr>
+                          {txs.map(tx => (
+                            <tr key={tx.id} className={`hover:bg-app-bg transition-colors ${selectedIds.includes(tx.id) ? 'bg-app-primary/5' : ''}`}>
+                              <td className="px-4 py-4 whitespace-nowrap text-center">
+                                <input type="checkbox" checked={selectedIds.includes(tx.id)} onChange={e => {
+                                  if (e.target.checked) setSelectedIds(prev => [...prev, tx.id]);
+                                  else setSelectedIds(prev => prev.filter(id => id !== tx.id));
+                                }} className="w-4 h-4 rounded border-app-border text-app-primary focus:ring-app-primary accent-app-primary" />
+                              </td>
+                              <td className="px-4 py-4 whitespace-nowrap text-sm text-app-muted">
+                                {tx.date.substring(5).replace('-', '/')}
+                              </td>
+                              <td className="px-6 py-4">
+                                <div className="text-sm font-medium text-app-text">{tx.notes || '-'}</div>
+                                <span className="inline-block mt-1 px-2 py-0.5 rounded-full text-[10px] font-bold tracking-wider uppercase" style={{ backgroundColor: `color-mix(in srgb, var(--${tx.type === 'Income' ? 'primary' : 'expense'}) 15%, transparent)`, color: `var(--${tx.type === 'Income' ? 'primary' : 'expense'})` }}>
+                                  {tx.type}
+                                </span>
+                              </td>
+                              <td className="px-6 py-4 whitespace-nowrap">
+                                <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium bg-app-bg text-app-text border border-app-border shadow-sm">
+                                  <span className="w-2 h-2 rounded-full shrink-0" style={{background: getCatColor(tx.category)}}></span>
+                                  {tx.category}
+                                </span>
+                              </td>
+                              <td className={`px-6 py-4 whitespace-nowrap text-base font-bold text-right transition-colors duration-200 ${tx.type === 'Income' ? 'text-app-primary' : 'text-app-text'}`}>
+                                {renderAmount(tx.amount, tx.type === 'Income' ? '+' : '-')}
+                              </td>
+                              <td className="px-6 py-4 whitespace-nowrap text-center text-app-muted">
+                                <div className="flex items-center justify-center gap-2">
+                                  <button onClick={() => handleEdit(tx)} className="p-1.5 hover:bg-app-border hover:text-app-text rounded-md transition-colors" title="Edit">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/><path d="m15 5 4 4"/></svg>
+                                  </button>
+                                  <button onClick={() => handleDelete(tx.id)} className="p-1.5 hover:bg-app-expense/10 hover:text-app-expense rounded-md transition-colors" title="Delete">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><line x1="10" x2="10" y1="11" y2="17"/><line x1="14" x2="14" y1="11" y2="17"/></svg>
+                                  </button>
+                                </div>
+                              </td>
+                            </tr>
+                          ))}
+                        </React.Fragment>
+                      )) : (
+                        <tr>
+                          <td colSpan="6" className="px-6 py-16 text-center bg-app-card transition-colors duration-200">
+                            <div className="flex flex-col items-center gap-3">
+                              <div className="p-3 rounded-full bg-app-bg border border-app-border text-app-muted">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/><path d="M8 11h6"/></svg>
+                              </div>
+                              <div className="text-sm font-semibold text-app-text">
+                                {searchQuery ? `No transactions matching "${searchQuery}"` : 'No transactions found'}
+                              </div>
+                              <p className="text-xs text-app-muted max-w-[200px] mx-auto">
+                                Try adjusting your filters or search terms to find what you're looking for.
+                              </p>
+                            </div>
+                          </td>
+                        </tr>
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+
+                {/* Pagination Controls */}
+                {totalPages > 1 && (
+                  <div className="px-6 py-4 border-t border-app-border flex items-center justify-between bg-app-card">
+                    <p className="text-sm text-app-muted">
+                      Showing <span className="font-medium text-app-text">{(currentPage - 1) * itemsPerPage + 1}</span> to <span className="font-medium text-app-text">{Math.min(currentPage * itemsPerPage, filteredTransactions.length)}</span> of <span className="font-medium text-app-text">{filteredTransactions.length}</span> entries
+                    </p>
+                    <div className="flex gap-2">
+                      <button
+                        onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                        disabled={currentPage === 1}
+                        className="px-3 py-1.5 text-sm font-medium rounded-lg border border-app-border bg-app-card text-app-text hover:bg-app-bg disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
+                        Previous
+                      </button>
+                      <button
+                        onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                        disabled={currentPage === totalPages}
+                        className="px-3 py-1.5 text-sm font-medium rounded-lg border border-app-border bg-app-card text-app-text hover:bg-app-bg disabled:opacity-50 disabled:cursor-not-allowed transition-colors">
+                        Next
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+            </div>
+          </div>
+        </div>
+        {/* Category Manager Modal */}
+        {showCatModal && (
+          <CategoryManagerModal
+            initialType={formType}
+            expenseCategories={expenseCategories}
+            incomeCategories={incomeCategories}
+            onAddCategory={handleAddCategory}
+            onDeleteCategory={handleDeleteCategory}
+            onClose={() => setShowCatModal(false)}
+          />
+        )}
+
+        {/* Confirm Modal */}
+        {confirmDialog && (
+          <ConfirmModal
+            title={confirmDialog.title}
+            message={confirmDialog.message}
+            onConfirm={confirmDialog.onConfirm}
+            onCancel={confirmDialog.onCancel}
+          />
+        )}
+
+        {/* Toasts */}
+        <ToastContainer toasts={toasts} onDismiss={dismissToast} />
+        </React.Fragment>
+      );
+    };
+
+    const root = ReactDOM.createRoot(document.getElementById('root'));
+    root.render(<App />);
+
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('sw.js').catch(err => console.log('SW Registration failed: ', err));
+      });
+    }
+  </script>
+</body>
+</html>
