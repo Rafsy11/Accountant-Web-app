@@ -273,6 +273,35 @@
       );
     };
 
+    /* ─── Hardcoded Demo Modal ─────────────────────────────────────────── */
+    const DemoModal = ({ onConfirm, onCancel }) => {
+      return (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{background:'rgba(0,0,0,0.6)'}} onClick={onCancel}>
+          <div className="bg-app-card border border-app-border rounded-2xl shadow-app w-full max-w-sm p-6 flex flex-col gap-y-4" onClick={e => e.stopPropagation()}>
+            <div className="flex items-start gap-3">
+              <div className="p-2 rounded-full bg-app-primary/10 text-app-primary shrink-0 mt-0.5">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+              </div>
+              <div>
+                <h3 className="text-base font-bold text-app-text">Load Demo Data</h3>
+                <p className="text-sm text-app-muted mt-1">This will clear all your existing transactions and load demo data. Continue?</p>
+              </div>
+            </div>
+            <div className="flex gap-3 justify-end pt-2">
+              <button type="button" onClick={onCancel}
+                className="px-4 py-2 rounded-xl text-sm font-semibold text-app-muted border border-app-border hover:bg-app-bg transition-colors">
+                Cancel
+              </button>
+              <button type="button" onClick={onConfirm}
+                className="px-4 py-2 rounded-xl text-sm font-semibold text-white transition-colors shadow-sm bg-gradient-to-r from-app-primary to-app-primaryHover hover:shadow-lg">
+                Confirm Load
+              </button>
+            </div>
+          </div>
+        </div>
+      );
+    };
+
     /* ─── Custom Confirm Modal ─────────────────────────────────────────── */
     const ConfirmModal = ({ title, message, confirmLabel, confirmColor, onConfirm, onCancel }) => {
       return (
@@ -577,6 +606,7 @@
       const [editingId, setEditingId] = useState(null);
       const [toasts, setToasts] = useState([]);
       const [confirmDialog, setConfirmDialog] = useState(null);
+      const [showDemoModal, setShowDemoModal] = useState(false);
       const [selectedIds, setSelectedIds] = useState([]);
 
       /* ── Date-range filter state ── */
@@ -736,41 +766,41 @@
 
       const handleLoadDemo = () => {
         if (transactions.length > 0) {
-          setConfirmDialog({
-            title: 'Load Demo Data',
-            message: 'This will clear all your existing transactions and load demo data. Continue?',
-            onConfirm: () => {
-              setConfirmDialog(null);
-              generateDemoData();
-            },
-            onCancel: () => setConfirmDialog(null)
-          });
+          setShowDemoModal(true);
         } else {
-          generateDemoData();
+          handleConfirmLoadDemo();
         }
       };
 
-      const generateDemoData = () => {
-        const today = new Date();
-        const demoTxs = [];
-        const catsExp = expenseCategories.length ? expenseCategories : DEFAULT_EXPENSE_CATEGORIES;
-        const catsInc = incomeCategories.length ? incomeCategories : DEFAULT_INCOME_CATEGORIES;
-        for (let i = 0; i < 15; i++) {
-          const d = new Date(today);
-          d.setDate(today.getDate() - Math.floor(Math.random() * 7));
-          const isIncome = Math.random() > 0.7;
-          const amt = isIncome ? (Math.floor(Math.random() * 50) + 10) * 10000 : (Math.floor(Math.random() * 20) + 1) * 10000;
-          demoTxs.push({
-            id: 'demo_' + Date.now() + i,
-            type: isIncome ? 'Income' : 'Expense',
-            amount: currency === 'IDR' ? amt : (amt / 15000), // Approximate for USD/EUR demo
-            category: isIncome ? catsInc[Math.floor(Math.random()*catsInc.length)].name : catsExp[Math.floor(Math.random()*catsExp.length)].name,
-            date: toLocalDateStr(d),
-            notes: isIncome ? 'Demo Income' : 'Demo Expense'
-          });
-        }
-        setTransactions(demoTxs.sort((a,b) => new Date(b.date) - new Date(a.date)));
-        addToast('Demo data loaded successfully', 'success');
+      const handleConfirmLoadDemo = () => {
+        // First: Close the modal immediately
+        setShowDemoModal(false);
+        
+        // Second: Execute the data generation logic (with slight delay so modal disappears first)
+        setTimeout(() => {
+          const today = new Date();
+          const demoTxs = [];
+          const catsExp = expenseCategories.length ? expenseCategories : DEFAULT_EXPENSE_CATEGORIES;
+          const catsInc = incomeCategories.length ? incomeCategories : DEFAULT_INCOME_CATEGORIES;
+          for (let i = 0; i < 15; i++) {
+            const d = new Date(today);
+            d.setDate(today.getDate() - Math.floor(Math.random() * 7));
+            const isIncome = Math.random() > 0.7;
+            const amt = isIncome ? (Math.floor(Math.random() * 50) + 10) * 10000 : (Math.floor(Math.random() * 20) + 1) * 10000;
+            demoTxs.push({
+              id: 'demo_' + Date.now() + i,
+              type: isIncome ? 'Income' : 'Expense',
+              amount: currency === 'IDR' ? amt : (amt / 15000), // Approximate for USD/EUR demo
+              category: isIncome ? catsInc[Math.floor(Math.random()*catsInc.length)].name : catsExp[Math.floor(Math.random()*catsExp.length)].name,
+              date: toLocalDateStr(d),
+              notes: isIncome ? 'Demo Income' : 'Demo Expense'
+            });
+          }
+          setTransactions(demoTxs.sort((a,b) => new Date(b.date) - new Date(a.date)));
+          
+          // Third: Trigger the success toast notification
+          addToast('Demo data loaded successfully', 'success');
+        }, 150);
       };
 
       const handleDeleteAll = () => {
@@ -1613,6 +1643,14 @@
             onAddCategory={handleAddCategory}
             onDeleteCategory={handleDeleteCategory}
             onClose={() => setShowCatModal(false)}
+          />
+        )}
+
+        {/* Hardcoded Demo Modal */}
+        {showDemoModal && (
+          <DemoModal
+            onConfirm={handleConfirmLoadDemo}
+            onCancel={() => setShowDemoModal(false)}
           />
         )}
 
