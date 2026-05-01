@@ -31,6 +31,7 @@
           },
           boxShadow: {
             'app': 'var(--card-shadow)',
+            'glow': '0 0 15px rgba(0, 209, 255, 0.3)',
           }
         }
       }
@@ -56,18 +57,19 @@
       }
       
       .theme-pro-dark {
-        --bg-main: #09090b;
-        --bg-card: #18181b;
-        --text-main: #f8fafc;
-        --text-muted: #e2e8f0;
-        --border: #52525b;
-        --primary: #14b8a6; /* Teal */
-        --primary-hover: #0d9488;
-        --expense: #e11d48; /* Soft Rose */
-        --expense-hover: #be123c;
-        --chart-expense: #e11d48;
-        --card-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.5), 0 4px 6px -4px rgb(0 0 0 / 0.5);
-        --btn-text: #ffffff;
+        --bg-main: #0B0E14;
+        --bg-card: #161B22;
+        --text-main: #E6EDF3;
+        --text-muted: #8b949e;
+        --border: #30363d;
+        --primary: #00D1FF;
+        --primary-hover: #00b8e6;
+        --expense: #EF4444;
+        --expense-hover: #dc2626;
+        --chart-expense: #EF4444;
+        --success: #10B981;
+        --card-shadow: 0 8px 24px rgba(0,0,0,0.4);
+        --btn-text: #0B0E14;
         color-scheme: dark;
       }
 
@@ -143,15 +145,16 @@
     const SEED_TRANSACTIONS = [];
 
     const DEFAULT_EXPENSE_CATEGORIES = [
-      { name: 'Food', color: '#f59e0b' },
-      { name: 'Transport', color: '#3b82f6' },
-      { name: 'Stock Restock', color: '#8b5cf6' },
-      { name: 'Bills', color: '#ef4444' },
+      { name: 'Food', color: '#FF6384' },
+      { name: 'Transport', color: '#FFCE56' },
+      { name: 'Rent/Utilities', color: '#9966FF' },
+      { name: 'Entertainment', color: '#36A2EB' },
+      { name: 'Health', color: '#FF9F40' },
       { name: 'Others', color: '#64748b' },
     ];
     const DEFAULT_INCOME_CATEGORIES = [
-      { name: 'Salary', color: '#10b981' },
-      { name: 'Warung Profit', color: '#0ea5e9' },
+      { name: 'Salary', color: '#4BC0C0' },
+      { name: 'Freelance', color: '#4BC0C0' },
       { name: 'Others', color: '#64748b' },
     ];
 
@@ -195,7 +198,7 @@
       const handleKey = (e) => { if (e.key === 'Enter') { e.preventDefault(); handleAdd(); } };
 
       return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{background:'rgba(0,0,0,0.6)'}} onClick={onClose}>
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 backdrop-blur-md" style={{background:'rgba(11, 14, 20, 0.6)'}} onClick={onClose}>
           <div className="bg-app-card border border-app-border rounded-2xl shadow-app w-full max-w-sm p-6 flex flex-col gap-y-5" onClick={e => e.stopPropagation()}>
             {/* Header */}
             <div className="flex items-center justify-between">
@@ -225,7 +228,7 @@
                 className="flex-1 px-3 py-2 text-sm rounded-xl border border-app-border bg-app-bg text-app-text focus:ring-2 focus:ring-app-primary focus:border-app-primary outline-none transition-all"
               />
               <button onClick={handleAdd}
-                className="px-4 py-2 rounded-xl text-sm font-semibold text-white bg-app-primary hover:bg-app-primaryHover transition-colors shrink-0">
+                className="px-4 py-2 rounded-xl text-sm font-semibold text-app-btn bg-app-primary hover:bg-app-primaryHover transition-colors shadow-glow shrink-0">
                 Add
               </button>
             </div>
@@ -276,7 +279,7 @@
     /* ─── Hardcoded Demo Modal ─────────────────────────────────────────── */
     const DemoModal = ({ onConfirm, onCancel }) => {
       return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{background:'rgba(0,0,0,0.6)'}} onClick={onCancel}>
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 backdrop-blur-md" style={{background:'rgba(11, 14, 20, 0.6)'}} onClick={onCancel}>
           <div className="bg-app-card border border-app-border rounded-2xl shadow-app w-full max-w-sm p-6 flex flex-col gap-y-4" onClick={e => e.stopPropagation()}>
             <div className="flex items-start gap-3">
               <div className="p-2 rounded-full bg-app-primary/10 text-app-primary shrink-0 mt-0.5">
@@ -293,7 +296,7 @@
                 Cancel
               </button>
               <button type="button" onClick={onConfirm}
-                className="px-4 py-2 rounded-xl text-sm font-semibold text-white transition-colors shadow-sm bg-gradient-to-r from-app-primary to-app-primaryHover hover:shadow-lg">
+                className="px-4 py-2 rounded-xl text-sm font-semibold text-app-btn transition-colors shadow-glow bg-app-primary hover:bg-app-primaryHover hover:shadow-lg">
                 Confirm Load
               </button>
             </div>
@@ -305,7 +308,7 @@
     /* ─── Custom Confirm Modal ─────────────────────────────────────────── */
     const ConfirmModal = ({ title, message, confirmLabel, confirmColor, onConfirm, onCancel }) => {
       return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4" style={{background:'rgba(0,0,0,0.6)'}} onClick={onCancel}>
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 backdrop-blur-md" style={{background:'rgba(11, 14, 20, 0.6)'}} onClick={onCancel}>
           <div className="bg-app-card border border-app-border rounded-2xl shadow-app w-full max-w-sm p-6 flex flex-col gap-y-4" onClick={e => e.stopPropagation()}>
             <div className="flex items-start gap-3">
               <div className="p-2 rounded-full bg-app-expense/10 text-app-expense shrink-0 mt-0.5">
@@ -708,9 +711,12 @@
         loadFromStorage('app_v2_incomeCategories', DEFAULT_INCOME_CATEGORIES)
       );
       const [showCatModal, setShowCatModal] = useState(false);
+      const [budgetLimit, setBudgetLimit] = useState(() => loadFromStorage('app_v2_budget', 5000000));
+      const [minAmount, setMinAmount] = useState('');
+      const [maxAmount, setMaxAmount] = useState('');
 
       const addToast = useCallback((message, type = 'success') => {
-        const id = Date.now().toString();
+        const id = crypto.randomUUID();
         setToasts(prev => [...prev, { id, message, type }]);
         setTimeout(() => setToasts(prev => prev.filter(t => t.id !== id)), 3000);
       }, []);
@@ -731,6 +737,31 @@
         downloadAnchorNode.click();
         downloadAnchorNode.remove();
         addToast('Data exported successfully', 'success');
+      };
+      const handleExportCSV = () => {
+        const headers = ['Date', 'Type', 'Category', 'Amount', 'Notes', 'Currency', 'Exchange Rate'];
+        const csvRows = [];
+        csvRows.push(headers.join(','));
+        transactions.forEach(tx => {
+          const row = [
+            tx.date,
+            tx.type,
+            `"${tx.category}"`,
+            tx.amount,
+            `"${(tx.notes || '').replace(/"/g, '""')}"`,
+            currency,
+            exchangeRates[currency]
+          ];
+          csvRows.push(row.join(','));
+        });
+        const dataStr = "data:text/csv;charset=utf-8," + encodeURIComponent(csvRows.join('\n'));
+        const downloadAnchorNode = document.createElement('a');
+        downloadAnchorNode.setAttribute("href", dataStr);
+        downloadAnchorNode.setAttribute("download", `expenses_backup_${toLocalDateStr()}.csv`);
+        document.body.appendChild(downloadAnchorNode);
+        downloadAnchorNode.click();
+        downloadAnchorNode.remove();
+        addToast('CSV exported successfully', 'success');
       };
       const handleImport = (e) => {
         const file = e.target.files[0];
@@ -841,6 +872,7 @@
       useEffect(() => { localStorage.setItem('app_v2_currency', JSON.stringify(currency)); }, [currency]);
       useEffect(() => { localStorage.setItem('app_v2_accent', JSON.stringify(accentColor)); }, [accentColor]);
       useEffect(() => { localStorage.setItem('app_v2_private', JSON.stringify(isPrivate)); }, [isPrivate]);
+      useEffect(() => { localStorage.setItem('app_v2_budget', JSON.stringify(budgetLimit)); }, [budgetLimit]);
 
       const renderAmount = useCallback((amount, prefix = '') => {
         return (
@@ -871,15 +903,10 @@
           // Category pools with realistic amount ranges (in IDR)
           const expensePool = [
             { category: 'Food', min: 25000, max: 150000, notes: ['Nasi Goreng', 'Lunch with team', 'Dinner delivery', 'Sushi lunch', 'Burger & fries'] },
-            { category: 'Coffee', min: 25000, max: 75000, notes: ['Morning Coffee', 'Iced latte', 'Coffee shop meeting', 'Morning brew', 'Cappuccino'] },
             { category: 'Transport', min: 50000, max: 200000, notes: ['Gasoline', 'Train tickets', 'Taxi ride', 'Bus pass renewal', 'Toll fee'] },
-            { category: 'Groceries', min: 200000, max: 900000, notes: ['Weekly Groceries', 'Supermarket shopping', 'Fresh produce', 'Household supplies'] },
-            { category: 'Rent', min: 1000000, max: 2500000, notes: ['Apartment Rent', 'Room rent'] },
-            { category: 'Internet', min: 200000, max: 500000, notes: ['Monthly WiFi', 'Mobile data plan'] },
-            { category: 'Netflix', min: 50000, max: 200000, notes: ['Netflix Subscription', 'Spotify Premium', 'Disney+ Hotstar'] },
-            { category: 'Gym', min: 300000, max: 600000, notes: ['Monthly Gym Membership', 'Yoga class'] },
-            { category: 'Entertainment', min: 100000, max: 400000, notes: ['Movie tickets & popcorn', 'Concert ticket', 'Game purchase'] },
-            { category: 'Utilities', min: 150000, max: 500000, notes: ['Electricity bill', 'Water bill', 'Gas bill'] }
+            { category: 'Rent/Utilities', min: 1000000, max: 2500000, notes: ['Apartment Rent', 'Electricity bill', 'Water bill', 'Internet'] },
+            { category: 'Entertainment', min: 100000, max: 400000, notes: ['Movie tickets & popcorn', 'Concert ticket', 'Game purchase', 'Netflix Subscription'] },
+            { category: 'Health', min: 100000, max: 500000, notes: ['Pharmacy', 'Doctor appointment', 'Vitamins', 'Gym Membership'] }
           ];
           const incomePool = [
             { category: 'Salary', min: 5000000, max: 10000000, notes: ['Monthly Salary', 'Bonus payment'] },
@@ -892,11 +919,11 @@
           const newDemoData = [];
 
           for (let i = 0; i < 25; i++) {
-            // Spreading formula: distribute across the last 15 days
+            // Spreading formula: distribute across the last 30 days
             const date = new Date();
-            date.setDate(date.getDate() - (i % 15));
+            date.setDate(date.getDate() - (i % 30));
 
-            const isIncome = (i === 0 || i === 12); // 2 income entries at fixed positions
+            const isIncome = (i % 6 === 0); // ~4 income entries
             let type, amount, category, notes;
 
             if (isIncome) {
@@ -916,7 +943,7 @@
             }
 
             newDemoData.push({
-              id: 'demo_' + Date.now() + '_' + Math.random().toString(36).slice(2, 9),
+              id: crypto.randomUUID(),
               type,
               amount: currency === 'IDR' ? amount : parseFloat((amount / 15000).toFixed(2)),
               category,
@@ -930,22 +957,17 @@
           
           // ── Auto-register demo categories with vivid colors ──
           const DEMO_CATEGORY_COLORS = {
-            'Food': '#f59e0b',
-            'Coffee': '#92400e',
-            'Transport': '#3b82f6',
-            'Groceries': '#22c55e',
-            'Rent': '#ef4444',
-            'Internet': '#06b6d4',
-            'Netflix': '#e11d48',
-            'Gym': '#8b5cf6',
-            'Entertainment': '#ec4899',
-            'Utilities': '#f97316',
-            'Salary': '#10b981',
-            'Freelance': '#0ea5e9'
+            'Food': '#FF6384',
+            'Transport': '#FFCE56',
+            'Rent/Utilities': '#9966FF',
+            'Entertainment': '#36A2EB',
+            'Health': '#FF9F40',
+            'Salary': '#4BC0C0',
+            'Freelance': '#4BC0C0'
           };
 
           // Merge missing expense categories
-          const demoExpCats = ['Food', 'Coffee', 'Transport', 'Groceries', 'Rent', 'Internet', 'Netflix', 'Gym', 'Entertainment', 'Utilities'];
+          const demoExpCats = ['Food', 'Transport', 'Rent/Utilities', 'Entertainment', 'Health'];
           const newExpCats = [...expenseCategories];
           demoExpCats.forEach(name => {
             if (!newExpCats.some(c => c.name === name)) {
@@ -1141,7 +1163,7 @@
           addToast('Transaction updated', 'success');
         } else {
           const newTx = {
-            id: Date.now().toString(),
+            id: crypto.randomUUID(),
             type: formType,
             amount: rawAmount,
             category: formCategory,
@@ -1188,17 +1210,10 @@
         });
       };
 
-      const summary = useMemo(() => {
+      const totalBalance = useMemo(() => {
         return transactions.reduce((acc, tx) => {
-          if (tx.type === 'Income') {
-            acc.income += tx.amount;
-            acc.balance += tx.amount;
-          } else {
-            acc.expense += tx.amount;
-            acc.balance -= tx.amount;
-          }
-          return acc;
-        }, { balance: 0, income: 0, expense: 0 });
+          return acc + (tx.type === 'Income' ? tx.amount : -tx.amount);
+        }, 0);
       }, [transactions]);
 
       /* Date-range filtered subset (used by charts + summary cards) */
@@ -1278,9 +1293,11 @@
           const matchCat = filterCategory === 'All' || tx.category === filterCategory;
           const matchSearch = tx.notes.toLowerCase().includes(searchQuery.toLowerCase()) ||
             tx.category.toLowerCase().includes(searchQuery.toLowerCase());
-          return matchType && matchCat && matchSearch;
+          const matchMin = !minAmount || tx.amount >= parseFloat(minAmount);
+          const matchMax = !maxAmount || tx.amount <= parseFloat(maxAmount);
+          return matchType && matchCat && matchSearch && matchMin && matchMax;
         });
-      }, [rangeTransactions, filterType, filterCategory, searchQuery]);
+      }, [rangeTransactions, filterType, filterCategory, searchQuery, minAmount, maxAmount]);
 
       const totalPages = Math.ceil(filteredTransactions.length / itemsPerPage);
       const paginatedTransactions = useMemo(() => {
@@ -1386,6 +1403,13 @@
                   </select>
                 </div>
 
+                {/* Global Budget Selector */}
+                <div>
+                  <label className="block text-xs font-semibold text-app-muted uppercase tracking-wider mb-2">Monthly Budget</label>
+                  <input type="number" value={budgetLimit} onChange={e => setBudgetLimit(Number(e.target.value))}
+                    className="w-full px-3 py-2 text-sm rounded-lg border border-app-border bg-app-bg text-app-text outline-none focus:ring-2 focus:ring-app-primary" placeholder="Enter max budget..." />
+                </div>
+
                 {/* Data Tools */}
                 <div className="flex flex-col gap-2">
                   <div className="flex gap-2">
@@ -1393,13 +1417,18 @@
                       <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" x2="12" y1="15" y2="3"/></svg>
                       JSON
                     </button>
+                    <button type="button" onClick={handleExportCSV} className="flex-1 py-2 text-xs font-semibold rounded-lg border border-app-border bg-app-bg text-app-btn opacity-80 hover:opacity-100 hover:bg-app-card transition-colors flex items-center justify-center gap-1.5">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+                      CSV
+                    </button>
+                  </div>
                     <input type="file" accept=".json" className="hidden" ref={fileInputRef} onChange={handleImport} />
                     <button type="button" onClick={() => fileInputRef.current?.click()} className="flex-1 py-2 text-xs font-semibold rounded-lg border border-app-border bg-app-bg text-app-btn opacity-80 hover:opacity-100 hover:bg-app-card transition-colors flex items-center justify-center gap-1.5">
                       <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" x2="12" y1="3" y2="15"/></svg>
                       Import
                     </button>
                   </div>
-                  <button type="button" onClick={handleExportPDF} className="w-full py-2.5 text-xs font-semibold rounded-lg bg-app-primary text-white shadow-md hover:bg-app-primaryHover transition-all flex items-center justify-center gap-2">
+                  <button type="button" onClick={handleExportPDF} className="w-full py-2.5 text-xs font-semibold rounded-lg bg-app-primary text-app-btn shadow-glow hover:bg-app-primaryHover transition-all flex items-center justify-center gap-2">
                     <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/><polyline points="14 2 14 8 20 8"/><path d="M16 13H8"/><path d="M16 17H8"/><path d="M10 9H8"/></svg>
                     Export Professional PDF
                   </button>
@@ -1417,7 +1446,16 @@
 
                 {/* Form Inputs */}
                 <div className="flex flex-col gap-y-3 shrink-0">
-                  <h2 className="text-base font-bold text-app-text">{editingId ? 'Edit Transaction' : 'Add Transaction'}</h2>
+                  <div className="flex items-center justify-between">
+                    <h2 className="text-base font-bold text-app-text">{editingId ? 'Edit Transaction' : 'Add Transaction'}</h2>
+                    {!editingId && (
+                      <div className="flex gap-1.5">
+                        <button type="button" onClick={() => { setFormType('Expense'); setFormCategory('Food'); setFormAmount('50000'); setFormNotes('Lunch'); }} className="px-2 py-1 text-[10px] font-semibold rounded bg-app-bg border border-app-border text-app-muted hover:text-app-text transition-colors">Lunch</button>
+                        <button type="button" onClick={() => { setFormType('Expense'); setFormCategory('Transport'); setFormAmount('20000'); setFormNotes('Transport'); }} className="px-2 py-1 text-[10px] font-semibold rounded bg-app-bg border border-app-border text-app-muted hover:text-app-text transition-colors">Transport</button>
+                        <button type="button" onClick={() => { setFormType('Income'); setFormCategory('Salary'); setFormAmount(''); setFormNotes('Salary'); }} className="px-2 py-1 text-[10px] font-semibold rounded bg-app-bg border border-app-border text-app-primary opacity-80 hover:opacity-100 transition-colors">+Income</button>
+                      </div>
+                    )}
+                  </div>
 
                   <div className="flex rounded-xl p-1 bg-app-bg border border-app-border shrink-0">
                     <button type="button" onClick={() => { setFormType('Expense'); setFormCategory(expenseCategories[0]?.name ?? ''); }}
@@ -1479,7 +1517,7 @@
               {/* FIXED BOTTOM: Buttons */}
               <div className="p-6 pt-4 pb-6 border-t border-app-border shrink-0 bg-app-card shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.05)] z-10 relative">
                 <button type="submit" 
-                  className={`w-full py-3 rounded-xl text-sm font-semibold text-white transition-all duration-300 shadow-md hover:shadow-lg ${formType === 'Expense' ? 'bg-app-expense hover:bg-app-expenseHover hover:-translate-y-0.5' : 'bg-app-primary hover:bg-app-primaryHover hover:-translate-y-0.5'}`}>
+                  className={`w-full py-3 rounded-xl text-sm font-semibold transition-all duration-300 shadow-md hover:shadow-lg ${formType === 'Expense' ? 'bg-app-expense text-white hover:bg-app-expenseHover hover:-translate-y-0.5' : 'bg-app-primary text-app-btn hover:bg-app-primaryHover hover:-translate-y-0.5 shadow-glow'}`}>
                   {editingId ? 'Update Transaction' : `Add ${formType}`}
                 </button>
                 {editingId && (
@@ -1527,10 +1565,10 @@
               </div>
 
               {/* Top Dashboard Cards */}
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                {/* ── Enhanced Net Balance Card ── */}
-                <div className="bg-app-card rounded-2xl p-6 shadow-app border border-app-border flex flex-col justify-between relative overflow-hidden group transition-colors duration-300">
-                  {/* Interactive Privacy Toggle Button */}
+              <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
+                
+                {/* Total Balance Card (All Time) */}
+                <div className="bg-app-card rounded-2xl p-6 shadow-app border border-app-border flex flex-col justify-between relative overflow-hidden group transition-colors duration-300" style={{ animation: 'slideUp 0.4s ease-out forwards', opacity: 0, animationDelay: '0s' }}>
                   <button onClick={() => setIsPrivate(!isPrivate)} className="absolute top-4 right-4 p-2 rounded-full hover:bg-white/10 transition-all cursor-pointer z-50 opacity-50 hover:opacity-100 text-app-text" title="Toggle Privacy">
                     {isPrivate ? (
                       <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9.88 9.88a3 3 0 1 0 4.24 4.24"/><path d="M10.73 5.08A10.43 10.43 0 0 1 12 5c7 0 10 7 10 7a13.16 13.16 0 0 1-1.67 2.68"/><path d="M6.61 6.61A13.526 13.526 0 0 0 2 12s3 7 10 7a9.74 9.74 0 0 0 5.39-1.61"/><line x1="2" x2="22" y1="2" y2="22"/></svg>
@@ -1540,23 +1578,31 @@
                   </button>
                   <div>
                     <div className="flex items-center justify-between">
-                      <p className="text-xs font-semibold text-app-muted uppercase tracking-wider">Net Balance</p>
+                      <p className="text-xs font-semibold text-app-muted uppercase tracking-wider">Total Balance</p>
                     </div>
-                    <p className={`text-3xl lg:text-4xl font-bold mt-2 tracking-tight ${rangeSummary.balance >= 0 ? 'text-app-primary' : 'text-app-expense'}`}>
+                    <p className={`text-3xl font-bold mt-2 tracking-tight ${totalBalance >= 0 ? 'text-app-text' : 'text-app-expense'}`}>
+                      {renderAmount(totalBalance)}
+                    </p>
+                  </div>
+                  <div className="mt-3 text-xs text-app-muted">All-time balance</div>
+                </div>
+
+                {/* Savings / Net Balance Card (Period) */}
+                <div className="bg-app-card rounded-2xl p-6 shadow-app border border-app-border flex flex-col justify-between transition-colors duration-300" style={{ animation: 'slideUp 0.4s ease-out forwards', opacity: 0, animationDelay: '0.05s' }}>
+                  <div>
+                    <div className="flex items-center justify-between">
+                      <p className="text-xs font-semibold text-app-muted uppercase tracking-wider">Period Savings</p>
+                    </div>
+                    <p className={`text-3xl font-bold mt-2 tracking-tight ${rangeSummary.balance >= 0 ? 'text-app-primary' : 'text-app-expense'}`}>
                       {renderAmount(rangeSummary.balance)}
                     </p>
                   </div>
-                  {/* Income vs Expense ratio bar */}
                   {(rangeSummary.income > 0 || rangeSummary.expense > 0) && (() => {
                     const total = rangeSummary.income + rangeSummary.expense;
                     const incomePct = ((rangeSummary.income / total) * 100).toFixed(0);
                     const expensePct = ((rangeSummary.expense / total) * 100).toFixed(0);
                     return (
                       <div className="mt-4">
-                        <div className="flex justify-between text-[11px] font-medium mb-1.5">
-                          <span className="text-app-primary">Income {incomePct}%</span>
-                          <span className="text-app-expense">Expense {expensePct}%</span>
-                        </div>
                         <div className="h-2 rounded-full bg-app-bg overflow-hidden flex">
                           <div className="h-full rounded-l-full transition-all duration-500" style={{width: `${incomePct}%`, background: 'var(--primary)'}}></div>
                           <div className="h-full rounded-r-full transition-all duration-500" style={{width: `${expensePct}%`, background: 'var(--expense)'}}></div>
@@ -1569,18 +1615,10 @@
                       </div>
                     );
                   })()}
-                  <div className={`mt-3 flex items-center gap-1.5 text-xs font-semibold ${rangeSummary.balance >= 0 ? 'text-app-primary' : 'text-app-expense'}`}>
-                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                      {rangeSummary.balance >= 0
-                        ? <><polyline points="22 7 13.5 15.5 8.5 10.5 2 17" /><polyline points="16 7 22 7 22 13" /></>
-                        : <><polyline points="22 17 13.5 8.5 8.5 13.5 2 7" /><polyline points="16 17 22 17 22 11" /></>}
-                    </svg>
-                    <span>{rangeSummary.balance >= 0 ? 'Net Positive' : 'Net Negative'}</span>
-                  </div>
                 </div>
 
                 {/* Income Card */}
-                <div className="bg-app-card rounded-2xl p-6 shadow-app border border-app-border flex flex-col justify-between transition-colors duration-300">
+                <div className="bg-app-card rounded-2xl p-6 shadow-app border border-app-border flex flex-col justify-between transition-colors duration-300" style={{ animation: 'slideUp 0.4s ease-out forwards', opacity: 0, animationDelay: '0.1s' }}>
                   <div>
                     <div className="flex justify-between items-start">
                       <p className="text-sm font-medium text-app-muted">Total Income</p>
@@ -1594,7 +1632,7 @@
                 </div>
 
                 {/* Expense Card */}
-                <div className="bg-app-card rounded-2xl p-6 shadow-app border border-app-border flex flex-col justify-between transition-colors duration-300">
+                <div className="bg-app-card rounded-2xl p-6 shadow-app border border-app-border flex flex-col justify-between transition-colors duration-300" style={{ animation: 'slideUp 0.4s ease-out forwards', opacity: 0, animationDelay: '0.15s' }}>
                   <div>
                     <div className="flex justify-between items-start">
                       <p className="text-sm font-medium text-app-muted">Total Expenses</p>
@@ -1608,8 +1646,49 @@
                 </div>
               </div>
 
+              {/* ── Budget & Insights ── */}
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6" style={{ animation: 'slideUp 0.4s ease-out forwards', opacity: 0, animationDelay: '0.1s' }}>
+                {/* Budget Tracker */}
+                <div className="bg-app-card rounded-2xl p-6 shadow-app border border-app-border flex flex-col justify-center transition-colors duration-300">
+                  <div className="flex justify-between items-center mb-2">
+                    <h3 className="text-sm font-bold text-app-text">Monthly Budget</h3>
+                    <span className="text-xs text-app-muted">{renderAmount(rangeSummary.expense)} / {renderAmount(budgetLimit)}</span>
+                  </div>
+                  {(() => {
+                    const pct = Math.min(100, (rangeSummary.expense / (budgetLimit || 1)) * 100).toFixed(1);
+                    const isDanger = pct >= 90;
+                    const isWarning = pct >= 75 && pct < 90;
+                    const barColor = isDanger ? 'var(--expense)' : (isWarning ? '#f59e0b' : 'var(--success)');
+                    return (
+                      <>
+                        <div className="h-3 rounded-full bg-app-bg overflow-hidden flex w-full border border-app-border mt-1">
+                          <div className="h-full rounded-full transition-all duration-700 ease-out" style={{width: `${pct}%`, background: barColor}}></div>
+                        </div>
+                        <p className={`text-xs mt-3 font-semibold ${isDanger ? 'text-app-expense' : 'text-app-muted'}`}>
+                          {pct}% Consumed. {isDanger ? 'You are nearing your limit!' : 'You are within budget.'}
+                        </p>
+                      </>
+                    );
+                  })()}
+                </div>
+
+                {/* Smart Insights */}
+                <div className="bg-app-card rounded-2xl p-6 shadow-app border border-app-border flex flex-col justify-center transition-colors duration-300">
+                  <div className="flex items-center gap-2 mb-3">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-app-primary"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
+                    <h3 className="text-sm font-bold text-app-text">Smart Insights</h3>
+                  </div>
+                  <ul className="text-xs text-app-muted space-y-2 list-disc pl-4">
+                    {pieData.length > 0 && <li>Your highest expense category is <span className="text-app-text font-semibold">{pieData[0].label}</span> ({((pieData[0].value / rangeSummary.expense) * 100).toFixed(0)}%).</li>}
+                    {rangeSummary.income > 0 && <li>You saved <span className="text-app-primary font-semibold">{((Math.max(0, rangeSummary.balance) / rangeSummary.income) * 100).toFixed(0)}%</span> of your income this period.</li>}
+                    {rangeSummary.expense > budgetLimit && <li>You have exceeded your monthly budget by <span className="text-app-expense font-semibold">{renderAmount(rangeSummary.expense - budgetLimit)}</span>.</li>}
+                    {rangeSummary.expense === 0 && rangeSummary.income === 0 && <li>No activity detected for this period. Add some transactions to get insights!</li>}
+                  </ul>
+                </div>
+              </div>
+
               {/* ── Charts Grid: Bar + Pie ── */}
-              <div className="grid grid-cols-1 xl:grid-cols-5 gap-6">
+              <div className="grid grid-cols-1 xl:grid-cols-5 gap-6" style={{ animation: 'slideUp 0.4s ease-out forwards', opacity: 0, animationDelay: '0.2s' }}>
                 {/* Bar Chart – 3/5 */}
                 <div className="xl:col-span-3 bg-app-card rounded-2xl p-6 shadow-app border border-app-border transition-colors duration-300">
                   <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
@@ -1665,7 +1744,7 @@
               </div>
 
               {/* History Table Area */}
-              <div className="bg-app-card rounded-2xl shadow-app border border-app-border overflow-hidden flex flex-col transition-colors duration-300">
+              <div className="bg-app-card rounded-2xl shadow-app border border-app-border overflow-hidden flex flex-col transition-colors duration-300" style={{ animation: 'slideUp 0.4s ease-out forwards', opacity: 0, animationDelay: '0.3s' }}>
                 <div className="p-6 border-b border-app-border flex flex-col md:flex-row md:items-center justify-between gap-4">
                   <div className="flex items-center gap-3">
                     <h2 className="text-2xl font-bold text-app-text transition-colors duration-200">Recent Transactions</h2>
@@ -1696,6 +1775,14 @@
                       <svg className="absolute left-2.5 top-1/2 -translate-y-1/2 text-app-muted" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8" /><path d="m21 21-4.3-4.3" /></svg>
                       <input type="text" placeholder="Search..." value={searchQuery} onChange={e => setSearchQuery(e.target.value)}
                         className="w-32 md:w-40 pl-8 pr-3 py-1.5 text-sm rounded-lg border border-app-border bg-app-bg text-app-text outline-none focus:ring-2 focus:ring-app-primary" />
+                    </div>
+
+                    <div className="flex items-center gap-1">
+                      <input type="number" placeholder="Min" value={minAmount} onChange={e => setMinAmount(e.target.value)}
+                        className="w-20 px-2 py-1.5 text-sm rounded-lg border border-app-border bg-app-bg text-app-text outline-none focus:ring-2 focus:ring-app-primary" />
+                      <span className="text-app-muted text-xs">-</span>
+                      <input type="number" placeholder="Max" value={maxAmount} onChange={e => setMaxAmount(e.target.value)}
+                        className="w-20 px-2 py-1.5 text-sm rounded-lg border border-app-border bg-app-bg text-app-text outline-none focus:ring-2 focus:ring-app-primary" />
                     </div>
                   </div>
                 </div>
