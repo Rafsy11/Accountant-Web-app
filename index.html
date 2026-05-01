@@ -284,7 +284,7 @@
               </div>
               <div>
                 <h3 className="text-base font-bold text-app-text">Load Demo Data</h3>
-                <p className="text-sm text-app-muted mt-1">This will add new demo transactions to your existing data. Continue?</p>
+                <p className="text-sm text-app-muted mt-1">This will replace your current transactions with fresh demo data. Continue?</p>
               </div>
             </div>
             <div className="flex gap-3 justify-end pt-2">
@@ -862,7 +862,11 @@
         // First: Close the modal immediately
         setShowDemoModal(false);
         
-        // Second: Execute the data generation logic (with slight delay so modal disappears first)
+        // Second: NUKE old data immediately — clear state AND localStorage
+        setTransactions([]);
+        localStorage.removeItem('app_v2_transactions');
+        
+        // Third: Generate fresh data with delay so modal disappears first
         setTimeout(() => {
           // Category pools with realistic amount ranges (in IDR)
           const expensePool = [
@@ -900,7 +904,6 @@
               type = 'Income';
               category = pool.category;
               amount = randBetween(pool.min, pool.max);
-              // Round to nearest 100000 for realism
               amount = Math.round(amount / 100000) * 100000;
               notes = randPick(pool.notes);
             } else {
@@ -908,7 +911,6 @@
               type = 'Expense';
               category = pool.category;
               amount = randBetween(pool.min, pool.max);
-              // Round to nearest 5000 for realism
               amount = Math.round(amount / 5000) * 5000;
               notes = randPick(pool.notes);
             }
@@ -923,14 +925,56 @@
             });
           }
           
-          // Stacking Logic: Use spread operator to add to existing
-          setTransactions(prev => [...prev, ...newDemoData].sort((a,b) => new Date(b.date) - new Date(a.date)));
+          // Sort by date descending
+          const sorted = newDemoData.sort((a,b) => new Date(b.date) - new Date(a.date));
+          
+          // ── Auto-register demo categories with vivid colors ──
+          const DEMO_CATEGORY_COLORS = {
+            'Food': '#f59e0b',
+            'Coffee': '#92400e',
+            'Transport': '#3b82f6',
+            'Groceries': '#22c55e',
+            'Rent': '#ef4444',
+            'Internet': '#06b6d4',
+            'Netflix': '#e11d48',
+            'Gym': '#8b5cf6',
+            'Entertainment': '#ec4899',
+            'Utilities': '#f97316',
+            'Salary': '#10b981',
+            'Freelance': '#0ea5e9'
+          };
+
+          // Merge missing expense categories
+          const demoExpCats = ['Food', 'Coffee', 'Transport', 'Groceries', 'Rent', 'Internet', 'Netflix', 'Gym', 'Entertainment', 'Utilities'];
+          const newExpCats = [...expenseCategories];
+          demoExpCats.forEach(name => {
+            if (!newExpCats.some(c => c.name === name)) {
+              newExpCats.push({ name, color: DEMO_CATEGORY_COLORS[name] });
+            }
+          });
+          setExpenseCategories(newExpCats);
+
+          // Merge missing income categories
+          const demoIncCats = ['Salary', 'Freelance'];
+          const newIncCats = [...incomeCategories];
+          demoIncCats.forEach(name => {
+            if (!newIncCats.some(c => c.name === name)) {
+              newIncCats.push({ name, color: DEMO_CATEGORY_COLORS[name] });
+            }
+          });
+          setIncomeCategories(newIncCats);
+
+          // HARD OVERWRITE: set state with ONLY the new data (no spread, no prev)
+          setTransactions(sorted);
+          
+          // FORCE localStorage sync immediately (don't wait for useEffect)
+          localStorage.setItem('app_v2_transactions', JSON.stringify(sorted));
           
           // Set filter to "Last 30 Days" so all generated dates are guaranteed visible
           setDateRange('Last 30 Days');
           
-          // Third: Trigger the success toast notification
-          addToast(`Loaded ${newDemoData.length} new demo transactions`, 'success');
+          // Success notification
+          addToast('Demo data loaded successfully', 'success');
         }, 150);
       };
 
