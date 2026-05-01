@@ -284,7 +284,7 @@
               </div>
               <div>
                 <h3 className="text-base font-bold text-app-text">Load Demo Data</h3>
-                <p className="text-sm text-app-muted mt-1">This will clear all your existing transactions and load demo data. Continue?</p>
+                <p className="text-sm text-app-muted mt-1">This will add new demo transactions to your existing data. Continue?</p>
               </div>
             </div>
             <div className="flex gap-3 justify-end pt-2">
@@ -369,28 +369,96 @@
 
           try {
             if (chartType === 'Candlestick') {
+              // ── Build OHLC data from transactions ──
+              const sorted = [...transactions].sort((a, b) => new Date(a.date) - new Date(b.date));
+              
+              // Group transactions by date
+              const dateGroups = {};
+              sorted.forEach(tx => {
+                if (!dateGroups[tx.date]) dateGroups[tx.date] = [];
+                dateGroups[tx.date].push(tx);
+              });
+
+              const dates = Object.keys(dateGroups).sort();
+              let runningBalance = 0;
+              const ohlcData = [];
+
+              dates.forEach(date => {
+                const dayOpen = runningBalance;
+                let dayHigh = runningBalance;
+                let dayLow = runningBalance;
+
+                dateGroups[date].forEach(tx => {
+                  runningBalance += (tx.type === 'Income' ? tx.amount : -tx.amount);
+                  if (runningBalance > dayHigh) dayHigh = runningBalance;
+                  if (runningBalance < dayLow) dayLow = runningBalance;
+                });
+
+                const dayClose = runningBalance;
+
+                ohlcData.push({
+                  x: luxon.DateTime.fromISO(date).valueOf(),
+                  o: dayOpen,
+                  h: dayHigh,
+                  l: dayLow,
+                  c: dayClose
+                });
+              });
+
+              if (ohlcData.length === 0) return;
+
               chartRef.current = new Chart(ctx, {
-                type: 'line',
+                type: 'candlestick',
                 data: {
-                  labels: data.map(d => luxon.DateTime.fromISO(d.isoDate).toFormat('MMM dd')),
                   datasets: [{
-                    label: 'Trend Balance',
-                    data: data.map(d => d.c),
-                    borderColor: '#8b5cf6',
-                    backgroundColor: isDark ? 'rgba(139, 92, 246, 0.2)' : 'rgba(139, 92, 246, 0.1)',
-                    borderWidth: 2,
-                    fill: true,
-                    tension: 0.3
+                    label: 'Daily Balance',
+                    data: ohlcData,
+                    color: {
+                      up: '#10b981',
+                      down: '#e11d48',
+                      unchanged: '#94a3b8'
+                    },
+                    borderColor: {
+                      up: '#10b981',
+                      down: '#e11d48',
+                      unchanged: '#94a3b8'
+                    }
                   }]
                 },
                 options: {
                   responsive: true,
                   maintainAspectRatio: false,
                   scales: {
-                    x: { ticks: { color: textColor }, grid: { display: false } },
-                    y: { ticks: { color: textColor, callback: v => formatCurrency(v, currency, exchangeRates) }, grid: { color: gridColor } }
+                    x: {
+                      type: 'timeseries',
+                      time: { unit: 'day', tooltipFormat: 'MMM dd, yyyy' },
+                      ticks: { color: textColor, maxTicksLimit: 10 },
+                      grid: { display: false }
+                    },
+                    y: {
+                      ticks: {
+                        color: textColor,
+                        callback: v => formatCurrency(v, currency, exchangeRates)
+                      },
+                      grid: { color: gridColor }
+                    }
                   },
-                  plugins: { legend: { display: false } }
+                  plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                      callbacks: {
+                        label: (ctx) => {
+                          const p = ctx.raw;
+                          return [
+                            `Open: ${formatCurrency(p.o, currency, exchangeRates)}`,
+                            `High: ${formatCurrency(p.h, currency, exchangeRates)}`,
+                            `Low: ${formatCurrency(p.l, currency, exchangeRates)}`,
+                            `Close: ${formatCurrency(p.c, currency, exchangeRates)}`
+                          ];
+                        }
+                      }
+                    }
+                  }
                 }
               });
             } else if (chartType === 'Line') {
@@ -595,7 +663,25 @@
       }, []);
 
       const [isAppearanceOpen, setIsAppearanceOpen] = useState(false);
-      const [transactions, setTransactions] = useState(() => loadFromStorage('app_v2_transactions', SEED_TRANSACTIONS));
+      const [transactions, setTransactions] = useState(() => {
+        const DATA_VERSION = 'v3'; // Bump this to force clear old stale demo data
+        const storedVersion = localStorage.getItem('app_v2_data_version');
+        
+        if (storedVersion !== DATA_VERSION) {
+          // Migration: clear old demo entries that were stacked on a single date
+          localStorage.setItem('app_v2_data_version', DATA_VERSION);
+          const raw = loadFromStorage('app_v2_transactions', []);
+          // Remove all old demo entries, keep user's real data
+          const cleaned = raw.filter(tx => !String(tx.id).startsWith('demo_'));
+          if (cleaned.length !== raw.length) {
+            localStorage.setItem('app_v2_transactions', JSON.stringify(cleaned));
+            return cleaned;
+          }
+          return raw.length > 0 ? raw : SEED_TRANSACTIONS;
+        }
+        
+        return loadFromStorage('app_v2_transactions', SEED_TRANSACTIONS);
+      });
       const [filterType, setFilterType] = useState('All');
       const [filterCategory, setFilterCategory] = useState('All');
       const [searchQuery, setSearchQuery] = useState('');
@@ -778,28 +864,73 @@
         
         // Second: Execute the data generation logic (with slight delay so modal disappears first)
         setTimeout(() => {
-          const today = new Date();
-          const demoTxs = [];
-          const catsExp = expenseCategories.length ? expenseCategories : DEFAULT_EXPENSE_CATEGORIES;
-          const catsInc = incomeCategories.length ? incomeCategories : DEFAULT_INCOME_CATEGORIES;
-          for (let i = 0; i < 15; i++) {
-            const d = new Date(today);
-            d.setDate(today.getDate() - Math.floor(Math.random() * 7));
-            const isIncome = Math.random() > 0.7;
-            const amt = isIncome ? (Math.floor(Math.random() * 50) + 10) * 10000 : (Math.floor(Math.random() * 20) + 1) * 10000;
-            demoTxs.push({
-              id: 'demo_' + Date.now() + i,
-              type: isIncome ? 'Income' : 'Expense',
-              amount: currency === 'IDR' ? amt : (amt / 15000), // Approximate for USD/EUR demo
-              category: isIncome ? catsInc[Math.floor(Math.random()*catsInc.length)].name : catsExp[Math.floor(Math.random()*catsExp.length)].name,
-              date: toLocalDateStr(d),
-              notes: isIncome ? 'Demo Income' : 'Demo Expense'
+          // Category pools with realistic amount ranges (in IDR)
+          const expensePool = [
+            { category: 'Food', min: 25000, max: 150000, notes: ['Nasi Goreng', 'Lunch with team', 'Dinner delivery', 'Sushi lunch', 'Burger & fries'] },
+            { category: 'Coffee', min: 25000, max: 75000, notes: ['Morning Coffee', 'Iced latte', 'Coffee shop meeting', 'Morning brew', 'Cappuccino'] },
+            { category: 'Transport', min: 50000, max: 200000, notes: ['Gasoline', 'Train tickets', 'Taxi ride', 'Bus pass renewal', 'Toll fee'] },
+            { category: 'Groceries', min: 200000, max: 900000, notes: ['Weekly Groceries', 'Supermarket shopping', 'Fresh produce', 'Household supplies'] },
+            { category: 'Rent', min: 1000000, max: 2500000, notes: ['Apartment Rent', 'Room rent'] },
+            { category: 'Internet', min: 200000, max: 500000, notes: ['Monthly WiFi', 'Mobile data plan'] },
+            { category: 'Netflix', min: 50000, max: 200000, notes: ['Netflix Subscription', 'Spotify Premium', 'Disney+ Hotstar'] },
+            { category: 'Gym', min: 300000, max: 600000, notes: ['Monthly Gym Membership', 'Yoga class'] },
+            { category: 'Entertainment', min: 100000, max: 400000, notes: ['Movie tickets & popcorn', 'Concert ticket', 'Game purchase'] },
+            { category: 'Utilities', min: 150000, max: 500000, notes: ['Electricity bill', 'Water bill', 'Gas bill'] }
+          ];
+          const incomePool = [
+            { category: 'Salary', min: 5000000, max: 10000000, notes: ['Monthly Salary', 'Bonus payment'] },
+            { category: 'Freelance', min: 500000, max: 3000000, notes: ['Logo Design Project', 'Website maintenance', 'Consulting fee', 'Writing gig'] }
+          ];
+
+          const randBetween = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
+          const randPick = (arr) => arr[Math.floor(Math.random() * arr.length)];
+
+          const newDemoData = [];
+
+          for (let i = 0; i < 25; i++) {
+            // Spreading formula: distribute across the last 15 days
+            const date = new Date();
+            date.setDate(date.getDate() - (i % 15));
+
+            const isIncome = (i === 0 || i === 12); // 2 income entries at fixed positions
+            let type, amount, category, notes;
+
+            if (isIncome) {
+              const pool = randPick(incomePool);
+              type = 'Income';
+              category = pool.category;
+              amount = randBetween(pool.min, pool.max);
+              // Round to nearest 100000 for realism
+              amount = Math.round(amount / 100000) * 100000;
+              notes = randPick(pool.notes);
+            } else {
+              const pool = randPick(expensePool);
+              type = 'Expense';
+              category = pool.category;
+              amount = randBetween(pool.min, pool.max);
+              // Round to nearest 5000 for realism
+              amount = Math.round(amount / 5000) * 5000;
+              notes = randPick(pool.notes);
+            }
+
+            newDemoData.push({
+              id: 'demo_' + Date.now() + '_' + Math.random().toString(36).slice(2, 9),
+              type,
+              amount: currency === 'IDR' ? amount : parseFloat((amount / 15000).toFixed(2)),
+              category,
+              date: toLocalDateStr(date),
+              notes
             });
           }
-          setTransactions(demoTxs.sort((a,b) => new Date(b.date) - new Date(a.date)));
+          
+          // Stacking Logic: Use spread operator to add to existing
+          setTransactions(prev => [...prev, ...newDemoData].sort((a,b) => new Date(b.date) - new Date(a.date)));
+          
+          // Set filter to "Last 30 Days" so all generated dates are guaranteed visible
+          setDateRange('Last 30 Days');
           
           // Third: Trigger the success toast notification
-          addToast('Demo data loaded successfully', 'success');
+          addToast(`Loaded ${newDemoData.length} new demo transactions`, 'success');
         }, 150);
       };
 
